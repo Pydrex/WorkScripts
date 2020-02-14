@@ -1,4 +1,4 @@
-5##VERSION 1.4  - AP - 31/05/2019
+##VERSION 2  - AP - 14/02/2020
 $FormatEnumerationLimit = -1
 Function Connect365 {
      Set-ExecutionPolicy Unrestricted -Force 
@@ -7,9 +7,9 @@ Function Connect365 {
 
      #$credential = Get-Credential
      #$credential.Password | ConvertFrom-SecureString | Out-File C:\PowerShell\O365Account.txt
-     $AdminName = "Andrew.Powell@ellisonssolicitors.com"
+     if (!$AdminName) {$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."}
      Import-Module MSOnline
-     $Pass = Get-Content "C:\PowerShell\O365Account.txt" | ConvertTo-SecureString
+     $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
      $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
      Connect-MsolService -Credential $Cred
      $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
@@ -18,18 +18,18 @@ Function Connect365 {
 }
 
 function Left {
-     cls
+     Clear-Host
      & 'UserLeft.ps1'
 }
 
 function NewUser {
-     cls
+     Clear-Host
      & 'NewUser.ps1'
 }
 
 function FullAccess {
      Connect365
-     cls
+     Clear-Host
      $Requestee = $null
      $Target = $null
      $Requestee = Read-Host "Who do you want to have access?"
@@ -41,7 +41,7 @@ function FullAccess {
 
 function RemoveAccess {
      Connect365
-     cls
+     Clear-Host
      $Requestee = $null
      $Target = $null
      $Requestee = Read-Host "Who do you want remove from having access?"
@@ -53,7 +53,7 @@ function RemoveAccess {
 
 function SendOnBehalf {
      Connect365
-     cls
+     Clear-Host
      $Requestee = $null
      $Target = $null
      Write-Host "Example - Type Andrew Powell if he wants to send on behalf of someone"
@@ -66,10 +66,10 @@ function SendOnBehalf {
 
 function AccessBehalf {
      Connect365
-     cls
+     Clear-Host
      $Requestee = $null
      $Requestee = Read-Host "Whos mailbox do you want to check permissions on?"
-     Get-Mailbox $Requestee | ft Name, grantsendonbehalfto -wrap
+     Get-Mailbox $Requestee | Format-Table Name, grantsendonbehalfto -wrap
 }
 
 function syncAD {
@@ -90,7 +90,7 @@ function syncAD {
 
 function DisableOutOfOffice {
      Connect365
-     cls
+     Clear-Host
      $Requestee = $null
      $Requestee = Read-Host "Whos mailbox do you want to remove the Out Of Office for?"
      Set-MailboxAutoReplyConfiguration -Identity $Requestee -AutoReplyState Disabled
@@ -100,7 +100,7 @@ function Show-Menu {
      param ( 
           [string]$Title = 'Procedures' 
      ) 
-     cls 
+     Clear-Host 
      Write-Host "================ $Title ================" 
      
      Write-Host "1: Press '1' for Full Access." 
@@ -119,44 +119,44 @@ do {
      $input = Read-Host "Please make a selection" 
      switch ($input) { 
           '1' { 
-               cls
+               Clear-Host
                'You chose the full access procedure' 
                FullAccess
           } '2' { 
-               cls 
+               Clear-Host 
                'You chose the Remove access procedure'
                RemoveAccess
           }
           '3' { 
-               cls 
+               Clear-Host 
                'You chose the Send On Behalf procedure'
                SendOnBehalf
           }
           '4' { 
-               cls 
+               Clear-Host 
                'You chose the view access procedure'
                AccessBehalf
           }
           '5' { 
-               cls 
+               Clear-Host 
                'You chose the New user procedure'
                NewUser
           }
           '6' { 
-               cls 
+               Clear-Host 
                'You chose Employee Left procedure'
                Left
           }
           '7' { 
-               cls 
+               Clear-Host 
                'You chose Office 365 connection'
                Connect365
           } '8' { 
-               cls 
+               Clear-Host 
                'You Selected the Out Of Office Procedure Office 365 connection'
                DisableOutOfOffice
           } '9' { 
-               cls 
+               Clear-Host 
                'You Selected the sync AD procedure'
                syncAD
            
