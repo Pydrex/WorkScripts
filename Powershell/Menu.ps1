@@ -1,4 +1,4 @@
-##VERSION 2  - AP - 14/02/2020
+##VERSION 2.0  - AP - 14/02/2020
 $FormatEnumerationLimit = -1
 Function Connect365 {
      Set-ExecutionPolicy Unrestricted -Force 

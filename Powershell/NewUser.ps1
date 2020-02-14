@@ -1,7 +1,7 @@
 #requires -Module ActiveDirectory
 #requires -RunAsAdministrator
 #Import-Module ActiveDirectory -EA Stop
-#VERSION 7.0 - AP - 14/02/2020
+#VERSION 7.0.0 - AP - 14/02/2020
 #Added Papercut duplicate checker - V7
 <#
 .Synopsis
