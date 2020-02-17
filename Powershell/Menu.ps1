@@ -1,5 +1,7 @@
 ##VERSION 2.0  - AP - 14/02/2020
 $FormatEnumerationLimit = -1
+Set-Location -Path $PSScriptRoot
+
 Function Connect365 {
      Set-ExecutionPolicy Unrestricted -Force 
      Import-Module MSOnline

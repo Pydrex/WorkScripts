@@ -14,9 +14,10 @@
 
 #With 2FA authentication enabled already.  If you don't have this enabled, use the above section on line 6 and comment out the next 3 lines below by putting a # at the beginning of each line.
 Get-PSSession | Remove-PSSession
+Set-Location -Path $PSScriptRoot
 Import-Module MSOnline
 $AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."
-$Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
+$Pass = Get-Content ".\O365Account.txt" | ConvertTo-SecureString
 $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
 Connect-MsolService -Credential $Cred
 $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection

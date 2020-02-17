@@ -21,7 +21,7 @@
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
 #######################################################################
-
+Set-Location -Path $PSScriptRoot
 $AzureAD = "AzureAD"
 
 $Installedmodules = Get-InstalledModule
