@@ -176,7 +176,7 @@ until ($input -eq 'q')
 
 # Add additonal users to Send on Behalf permissions for mailbox. add= list if a comma seperate list. Each email address should be in double quoted brackets
 
-# Set-mailbox �MySharedMailbox� �Grantsendonbehalfto @{add="john.smith@domain.com"}
+# Set-mailbox -MySharedMailbox- -Grantsendonbehalfto @{add="john.smith@domain.com"}
 
 # Confirm that user has been succesfully added to send on behalf permissions for mailbox
 
@@ -200,11 +200,11 @@ until ($input -eq 'q')
 
 ##$DeviceID = "51f3e3ef066235e386ed036ccb27a64a"
 ##$identity = "Gabriel Sarateanu"
-##Set-CASMailbox "Gulcan Dirlik" �ActiveSyncAllowedDeviceIDs @{Add="3F634263D6094C32A2050E4E6D66EDF8"}
+##Set-CASMailbox "Gulcan Dirlik" -ActiveSyncAllowedDeviceIDs @{Add="3F634263D6094C32A2050E4E6D66EDF8"}
 ##Get-CASMailbox $alias | Select ActiveSyncAllowedDeviceIDs,ActiveSyncBlockedDeviceIDs
 ##Set-CASMailbox "Gabriel Sarateanu" -EwsBlockList @{Add="Outlook-iOS/*","Outlook-Android/*"}
 
-#Enable � Save a copy of sending mail items in the Shared mailbox sent items folder
+#Enable - Save a copy of sending mail items in the Shared mailbox sent items folder
 #Set-Mailbox -Identity <identity> -MessageCopyForSentAsEnabled $True
 #Set-Mailbox -Identity <identity> -MessageCopyForSentAsEnabled $False
 #Set-Mailbox -Identity <identity> -MessageCopyForSendOnBehalfEnabled $True
