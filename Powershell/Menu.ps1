@@ -9,7 +9,7 @@ Function Connect365 {
      #$credential.Password | ConvertFrom-SecureString | Out-File C:\PowerShell\O365Account.txt
      if (!$AdminName) {$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."}
      Import-Module MSOnline
-     $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
+     $Pass = Get-Content ".\O365Account.txt" | ConvertTo-SecureString
      $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
      Connect-MsolService -Credential $Cred
      $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
@@ -19,12 +19,12 @@ Function Connect365 {
 
 function Left {
      Clear-Host
-     & 'UserLeft.ps1'
+     & '.\UserLeft.ps1'
 }
 
 function NewUser {
      Clear-Host
-     & 'NewUser.ps1'
+     & '.\NewUser.ps1'
 }
 
 function FullAccess {
