@@ -6,12 +6,11 @@ Function Connect365 {
      Set-ExecutionPolicy Unrestricted -Force 
      Import-Module MSOnline
      Get-PSSession | Remove-PSSession
-
      #$credential = Get-Credential
-     #$credential.Password | ConvertFrom-SecureString | Out-File C:\PowerShell\O365Account.txt
+     #$credential.Password | ConvertFrom-SecureString | Out-File O365Account.txt
      if (!$AdminName) {$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."}
      Import-Module MSOnline
-     $Pass = Get-Content ".\O365Account.txt" | ConvertTo-SecureString
+     $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
      $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
      Connect-MsolService -Credential $Cred
      $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
