@@ -91,8 +91,8 @@ Set-ADUser -Identity $sam -Replace @{msExchHideFromAddressLists=$True}
 
 Get-ADUser $sam -Properties MemberOf | Select -Expand MemberOf | %{Remove-ADGroupMember $_ -member $sam}
 $datestamp = Get-Date -Format g
-
-Get-aduser $sam -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by AP - $datestamp" }
+$initials = Read-host "Enter your Initials for the lock out stamp"
+Get-aduser $sam -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
 $contactemail = read-host 'Enter the full email of the person who should be in the Out Of Office reply example (Contact HoD for email)'
 $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."

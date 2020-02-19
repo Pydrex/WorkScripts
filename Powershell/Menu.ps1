@@ -94,6 +94,11 @@ function DisableOutOfOffice {
      Set-MailboxAutoReplyConfiguration -Identity $Requestee -AutoReplyState Disabled
 }
 
+
+function UpdateCreds {
+     $credential = Get-Credential
+     $credential.Password | ConvertFrom-SecureString | Out-File O365Account.txt
+}
 function Show-Menu { 
      param ( 
           [string]$Title = 'Procedures' 
@@ -109,7 +114,8 @@ function Show-Menu {
      Write-Host "6: Press '6' for the user left procedure." 
      Write-Host "7: Press '7' to connect to 365." 
      Write-Host "8: Press '8' to select Disable Out Of Office." 
-     Write-Host "8: Press '9' to sync all AD Controllers." 
+     Write-Host "9: Press '9' to sync all AD Controllers."
+     Write-Host "U: Press 'U' to update stored creds in O365 file." 
      Write-Host "Q: Press 'Q' to quit." 
 } 
 do { 
@@ -157,6 +163,11 @@ do {
                Clear-Host 
                'You Selected the sync AD procedure'
                syncAD
+           
+          } 'U' { 
+               Clear-Host
+               'Please update your creds'
+               UpdateCreds
            
           } 'q' { 
                'Thank you, come again'
