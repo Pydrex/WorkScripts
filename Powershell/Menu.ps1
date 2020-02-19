@@ -3,11 +3,8 @@ $FormatEnumerationLimit = -1
 Set-Location -Path $PSScriptRoot
 
 Function Connect365 {
-     Set-ExecutionPolicy Unrestricted -Force 
      Import-Module MSOnline
      Get-PSSession | Remove-PSSession
-     #$credential = Get-Credential
-     #$credential.Password | ConvertFrom-SecureString | Out-File O365Account.txt
      if (!$AdminName) {$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."}
      Import-Module MSOnline
      $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
