@@ -1,4 +1,7 @@
 O365Account.txt
 OnPremAccount.txt
 DomainAdminAccount.txt
+DomainAdminName.txt
+O365AdminName.txt
 dummy.ps1
+creds

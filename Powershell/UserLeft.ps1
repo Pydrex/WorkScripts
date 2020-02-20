@@ -13,18 +13,10 @@
 #Import-PSSession $Session
 
 #With 2FA authentication enabled already.  If you don't have this enabled, use the above section on line 6 and comment out the next 3 lines below by putting a # at the beginning of each line.
-Get-PSSession | Remove-PSSession
 Set-Location -Path $PSScriptRoot
-Import-Module MSOnline
-$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."
-if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" }
-if (!$DomainPass) { $DomainPass = Get-Content ".\DomainAdminAccount.txt" | ConvertTo-SecureString }
-$Pass = Get-Content ".\O365Account.txt" | ConvertTo-SecureString
-$Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
-Connect-MsolService -Credential $Cred
-$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
-Import-PSSession $Session -AllowClobber
-Clear-Host
+Import-Module ".\EllisonsModule.psm1" -Force
+Enter-Office365
+#Clear-Host
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
   
 Do {
@@ -101,7 +93,6 @@ $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If 
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 Set-MailboxAutoReplyConfiguration -Identity $EmailAddress -AutoReplyState Enabled -InternalMessage $internalMsg -ExternalMessage $externalMsg
 
-$DomainCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $DomainAdminName, $DomainPass
-Start-Process powershell.exe '.\SyncAD.ps1' -Credential $DomainCred
+Start-SyncAD
 
 Get-PSSession | Remove-PSSession

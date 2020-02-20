@@ -9,87 +9,21 @@
     Consult Andrew in IT for any support or issues with this query.
  
 #>
-
-#######################################################################
-#                Use this section to save credential                  #
-#######################################################################
-#
-#$credential = Get-Credential
-#$credential.Password | ConvertFrom-SecureString | Out-File C:\PowerShell\O365Account.txt
-#
-
-#######################################################################
-#             Check AzureAD Module - Install If Missing               #
-#######################################################################
 Set-Location -Path $PSScriptRoot
-$AzureAD = "AzureAD"
-
-$Installedmodules = Get-InstalledModule
-
-if ($Installedmodules.name -contains $AzureAD) {
-
-    "$AzureAD is installed "
-
-}
-
-else {
-
-    Install-Module AzureAD
-
-    "$AzureAD now installed"
-
-}
-
-#######################################################################
-#              Check MSOnline Module - Install If Missing             #
-#######################################################################
-
-$MSOnline = "MSOnline"
-
-$Installedmodules = Get-InstalledModule
-
-if ($Installedmodules.name -contains $MSOnline) {
-
-    "$MSOnline is installed "
-
-}
-
-else {
-
-    Install-Module MSOnline
-
-    "$MSOnline now installed"
-
-}
-
-
-$error.clear()
-try {  }
-catch { "Error occured" }
-if (!$error) {
-"No Error Occured"
-}
-
-$Admin = "Administrator"
-$Pass = Get-Content "OnPremAccount.txt" | ConvertTo-SecureString
-$Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
+Import-Module ".\EllisonsModule.psm1" -Force
 $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
 
-  
-Write-Output "Importing Active Directory Module"
-Import-Module ActiveDirectory
-Write-Host "Done..."
-Write-Host
-Write-Host
-  
-  
-Write-Output "Importing OnPrem Exchange Module"
+Enter-OnPrem365
+
+$Admin = "Administrator"
+$Pass = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
+$Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
+$ExchangeServer = "EZ-AZ-EXCHB.ellisonslegal.com"
 $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Lcreds
-Import-Module MSOnline
-Import-PSSession $OnPrem | Out-Null
+
 Write-Host "Done..."
 Clear-Host
-if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" }
+
 function Show-Menu { 
     param ( 
         [string]$Title = 'What type of account is this?' 
@@ -387,10 +321,8 @@ if ($Proceed -ieq 'y') {
         Write-Host
     }
 }
-if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" }
-if (!$DomainPass) { $DomainPass = Get-Content ".\DomainAdminAccount.txt" | ConvertTo-SecureString }
-$DomainCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $DomainAdminName, $DomainPass
-Start-Process powershell.exe '.\SyncAD.ps1' -Credential $DomainCred
+
+Start-SyncAD
 
 if ($Usertype -ieq 'normal') { 
     Start-Sleep -s 15
@@ -406,13 +338,9 @@ if ($Usertype -ieq 'normal') {
     Clear-Host
 
     Write-Host "Login into the cloud to see if the user exists!"
-
     Import-Module MSOnline
-    $AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."
-    $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
-    $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
-    Connect-MsolService -Credential $Cred
-    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
+    Connect-MsolService -Credential $Global:365Cred
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     Import-PSSession $Session -AllowClobber
 
     #LICENSE USER ACCOUNT

@@ -1,6 +1,5 @@
 ##VERSION 3.0  - AP - 20/02/2020
 Set-Location -Path $PSScriptRoot
-#requires -Module ActiveDirectory
 Import-Module ".\EllisonsModule.psm1" -Force
 
 do { 

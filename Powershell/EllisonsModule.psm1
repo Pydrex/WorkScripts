@@ -1,12 +1,55 @@
 #Module
 Write-Host "Loading Powershell Ellisons Module" -ForegroundColor Green
 Write-Host "Version 1.0.0" 
+#######################################################################
+#             Check AzureAD Module - Install If Missing               #
+#######################################################################
 Set-Location -Path $PSScriptRoot
+$AzureAD = "AzureAD"
 
-function Get-WelcomeMessage {
-    Write-Host "Hello World"    
+$Installedmodules = Get-InstalledModule
+
+if ($Installedmodules.name -contains $AzureAD) {
+
+    "$AzureAD is installed "
+
 }
 
+else {
+
+    Install-Module AzureAD
+
+    "$AzureAD now installed"
+
+}
+
+#######################################################################
+#              Check MSOnline Module - Install If Missing             #
+#######################################################################
+
+$MSOnline = "MSOnline"
+
+$Installedmodules = Get-InstalledModule
+
+if ($Installedmodules.name -contains $MSOnline) {
+
+    "$MSOnline is installed "
+
+}
+
+else {
+
+    Install-Module MSOnline
+
+    "$MSOnline now installed"
+
+}
+Get-PSSession | Remove-PSSession
+Import-Module ActiveDirectory
+Import-Module MSOnline
+
+Set-Location -Path $PSScriptRoot
+$Global:currentUser = $env:UserName
 function Show-Menu { 
     param ( 
          [string]$Title = 'Procedures' 
@@ -27,18 +70,21 @@ function Show-Menu {
     Write-Host "Q: Press 'Q' to quit." 
 } 
 
-Function Enter-Office365 {
+function Enter-OnPrem365 {
+    
+    Write-Output "Importing OnPrem Exchange Module"
+    $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
     Import-Module MSOnline
-    Get-PSSession | Remove-PSSession
-    if (!$365Admin) { $365Admin = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..." }
-    Import-Module MSOnline
-    $365Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
-    $365Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $365Admin, $365Pass
-    Connect-MsolService -Credential $365Cred
-    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $365Cred -Authentication Basic -AllowRedirection
-    Import-PSSession $Session -AllowClobber 
-
+    Import-PSSession $OnPrem | Out-Null
 }
+
+Function Enter-Office365 {
+    365AccountCheck
+    Connect-MsolService -Credential $Global:365Cred
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+    Import-PSSession $Session -AllowClobber 
+}
+
 function Start-UserLeft {
     & './UserLeft.ps1'
 }
@@ -46,7 +92,7 @@ function Start-NewUser {
     & './NewUser.ps1'
 }
 function Start-FullAccess {
-    Ellisons-Connect365
+    Enter-Office365
     Clear-Host
     $Requestee = $null
     $Target = $null
@@ -57,7 +103,7 @@ function Start-FullAccess {
     Write-Host "Done, This might take 20 minutes."
 }
 function Start-RemoveAccess {
-    Ellisons-Connect365
+    Enter-Office365
     Clear-Host
     $Requestee = $null
     $Target = $null
@@ -68,7 +114,7 @@ function Start-RemoveAccess {
     Write-Host "Done, This might take 20 minutes."
 }
 function Start-SendOnBehalf {
-    Ellisons-Connect365
+    Enter-Office365
     Clear-Host
     $Requestee = $null
     $Target = $null
@@ -80,7 +126,7 @@ function Start-SendOnBehalf {
     Write-Host "Done, This might take 20 minutes."
 }
 function Start-AccessBehalf {
-    Ellisons-Connect365
+    Enter-Office365
     Clear-Host
     $Requestee = $null
     $Requestee = Read-Host "Whos mailbox do you want to check permissions on?"
@@ -91,24 +137,37 @@ function Start-SyncAD {
     Start-Process powershell.exe '.\SyncAD.ps1' -Credential $DomainCred
 }
 function Start-DisableOutOfOffice {
-    Ellisons-Connect365
+    Enter-Office365
     Clear-Host
     $Requestee = $null
     $Requestee = Read-Host "Whos mailbox do you want to remove the Out Of Office for?"
     Set-MailboxAutoReplyConfiguration -Identity $Requestee -AutoReplyState Disabled
 }
 function Start-UpdateCreds {
-    $credential = Get-Credential
-    $credential.Password | ConvertFrom-SecureString | Out-File O365Account.txt
+    Write-Host "Enter your 365 username and password" -ForegroundColor Green
+    Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..." | Out-File ".\creds\$Global:currentUser-O365AdminName.txt"
+    Write-Host "Type in your Office 365 login email and password" -ForegroundColor Blue -BackgroundColor Black
+    $UpdateCredscredential = Get-Credential
+    $UpdateCredscredential.Password | ConvertFrom-SecureString | Out-File ".\creds\$Global:currentUser-O365Password.txt"
+    $Global:365AdminPassword = Get-Content ".\creds\$Global:currentUser-O365Password.txt"
+    $Global:365AdminUsername = Get-Content ".\creds\$Global:currentUser-O365AdminName.txt"
 }
-function Start-UpdateDomainCreds {
-    $credential = Get-Credential
-    $credential.Password | ConvertFrom-SecureString | Out-File DomainAdminAccount.txt
+function Start-UpdateSRVCreds {
+    Write-Host "Enter the SRV username and password" -ForegroundColor Green
+    $UpdateDomainCredscredential = Get-Credential
+    Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" | Out-File ".\creds\$Global:currentUser-SRVAdminName.txt"
+    $UpdateDomainCredscredential.Password | ConvertFrom-SecureString | Out-File ".\creds\$Global:currentUser-SRVPassword.txt"
+    $Global:SRVAdminPassword = Get-Content ".\creds\$Global:currentUser-SRVPassword.txt"
+    $Global:SRVAdminUsername = Get-Content ".\creds\$Global:currentUser-SRVAdminName.txt"
+
 }
 
-function Start-DomaincredCheck {
-    if (Test-path -Path '.\DomainAdminName.txt') {$DomainAdminName = Get-Content '.\DomainAdminName.txt'}
-    if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" | Out-File '.\DomainAdminName.txt'}
-    if (!$DomainPass) { $DomainPass = Get-Content ".\DomainAdminAccount.txt" | ConvertTo-SecureString }
-    $DomainCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $DomainAdminName, $DomainPassS
+function Start-AdministratorUpdate {
+    Write-Host "Enter the ELLNET\Administrator username and password" -ForegroundColor Green
+    $AdministratorUpdatecredential = Get-Credential
+    $AdminNameLocal = "Administrator" | Out-File ".\creds\$Global:currentUser-AdministratorName.txt"
+    $AdministratorUpdatecredential.Password | ConvertFrom-SecureString | Out-File ".\creds\$Global:currentUser-AdministratorPassword.txt"
+
+    $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt"
+    $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
 }
