@@ -1,8 +1,8 @@
 #requires -Module ActiveDirectory
-#requires -RunAsAdministrator
 #Import-Module ActiveDirectory -EA Stop
-#VERSION 7.0.0 - AP - 14/02/2020
+#VERSION 8.0.0 - AP - 19/02/2020
 #Added Papercut duplicate checker - V7
+#Multiple fixes for AD Sync
 <#
 .Synopsis
     This will create a user with a mailbox in Office365 in Hybrid Exchange.
@@ -63,16 +63,17 @@ else {
 }
 
 
+$error.clear()
+try {  }
+catch { "Error occured" }
+if (!$error) {
+"No Error Occured"
+}
 
-
-Get-PSSession | Remove-PSSession
 $Admin = "Administrator"
 $Pass = Get-Content "OnPremAccount.txt" | ConvertTo-SecureString
 $Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
-$ExchangeServer = "EZ-AZ-EXCHB.ellisonslegal.com"
- 
-$server = Get-ADDomain | select -ExpandProperty PDCEmulator
-
+$server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
 
   
 Write-Output "Importing Active Directory Module"
@@ -87,12 +88,13 @@ $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Ex
 Import-Module MSOnline
 Import-PSSession $OnPrem | Out-Null
 Write-Host "Done..."
-cls
+Clear-Host
+if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" }
 function Show-Menu { 
     param ( 
         [string]$Title = 'What type of account is this?' 
     ) 
-    cls     
+    Clear-Host     
     Write-Host "Press 'U' for A normal user" 
     Write-Host "Press 'R' for Room Mailbox." 
     Write-Host "Press 'S' for Shared Mailbox."
@@ -119,7 +121,7 @@ do {
 } 
 until ($input)
 
-cls
+Clear-Host
 Write-Host "Before we create the account"
 $CopyUser = Read-Host "Would you like to copy from another user? (y/n)"
 Write-Host
@@ -132,7 +134,7 @@ Do {
           
         Write-Host "Checking if $CUser is a valid user..." -ForegroundColor:Green
         If ($(Get-ADUser -Filter { SamAccountName -eq $CUser })) {
-            Write-Host "Copying from user account" (Get-ADUser $CUser | select -ExpandProperty DistinguishedName)
+            Write-Host "Copying from user account" (Get-ADUser $CUser | Select-Object -ExpandProperty DistinguishedName)
             Write-Host
   
             $Proceed = Read-Host "Continue? (y/n)"
@@ -147,9 +149,9 @@ Do {
         }
         else {
             Write-Host "$CUser was not a valid user" -ForegroundColor:Red
-            Sleep 4
+            Start-Sleep 4
             $Exit = $false
-            cls
+            Clear-Host
         }
   
     }
@@ -161,7 +163,7 @@ Do {
   
 
   
-cls
+Clear-Host
 Write-Host "Gathering information for new account creation."
 Write-Host
 $firstname = Read-Host "Enter in the First Name"
@@ -169,8 +171,8 @@ Write-Host
 $lastname = Read-Host "Enter in the Last Name"
 Write-Host
 if ($Usertype -ieq 'normal') { 
-$fullname = "$firstname $lastname"
-$logonname = "$firstname.$lastname"
+    $fullname = "$firstname $lastname"
+    $logonname = "$firstname.$lastname"
 }
 
 if ($Usertype -ieq 'room') { 
@@ -193,7 +195,7 @@ $domain = "ellisonssolicitors.com"
   
 if ($CUser) {
     #Getting OU from the copied User.
-    $Object = $CUser | select -ExpandProperty DistinguishedName
+    $Object = $CUser | Select-Object -ExpandProperty DistinguishedName
     $pos = $Object.IndexOf(",OU")
     $OU = $Object.Substring($pos + 1)
     #$OU = "CN=Users,DC=Ellisonslegal,DC=com"
@@ -250,11 +252,11 @@ if ($CUser) {
     #Getting Membership groups from copied user.
     $MemberOf = Get-ADPrincipalGroupMembership $CUser | Where-Object { $_.Name -ine "Domain Users" }
 
-  if (!$MemberOf) {
-    Write-Host "FAILED TO GET GROUPS FROM USER - RESTART POWERSHELL AS ADMIN AND MAKE SURE ActiveDirectory is IMPORTED" -ForegroundColor:RED
-    Write-Host "You can also carry on and manually add groups later" -ForegroundColor:RED
-    pause
-}
+    if (!$MemberOf) {
+        Write-Host "FAILED TO GET GROUPS FROM USER - RESTART POWERSHELL AS ADMIN AND MAKE SURE ActiveDirectory is IMPORTED" -ForegroundColor:RED
+        Write-Host "You can also carry on and manually add groups later" -ForegroundColor:RED
+        pause
+    }
   
 }
 else {
@@ -266,7 +268,7 @@ else {
 
 
 
-cls
+Clear-Host
 Write-Host "======================================="
 Write-Host
 Write-Host "Firstname:      $firstname"
@@ -287,14 +289,14 @@ DO {
         Write-Host "Changing Logon name to" $logonname.toUpper() -ForegroundColor:Green
         Write-Host
         $taken = $true
-        sleep 4
+        Start-Sleep 4
     }
     else {
         $taken = $false
     }
 } Until ($taken -eq $false)
 $logonname = $logonname.toLower()
-Sleep 3
+Start-Sleep 3
 
 if ($Usertype -ieq 'normal') {
     $email = "$firstname.$lastname@$domain"
@@ -302,14 +304,14 @@ if ($Usertype -ieq 'normal') {
     $finding = Get-ADUser -Filter { EmployeeId -eq $EmployeeID } -Properties EmployeeId
 
     if ($finding) {
-    $idLookup = $finding | ForEach-Object { $idLookup = @{} } { if($_.EmployeeId) { $idLookup[$_.EmployeeId] += 1 } } { $idLookup }
-    $filteredUsers = $finding | Where-Object { if($_.EmployeeId) { $idLookup[$_.EmployeeId] -gt 1 } }
-    $filteredUsers | Select-Object -Property SamAccountName, EmployeeId
-    Write-Host "!DUPLICATE PAPERCUT ID FOUND! - PLEASE CHANGE" -ForegroundColor:Red
+        $idLookup = $finding | ForEach-Object { $idLookup = @{ } } { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] += 1 } } { $idLookup }
+        $filteredUsers = $finding | Where-Object { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] -gt 1 } }
+        $filteredUsers | Select-Object -Property SamAccountName, EmployeeId
+        Write-Host "!DUPLICATE PAPERCUT ID FOUND! - PLEASE CHANGE" -ForegroundColor:Red
     }
 }
 
-cls
+Clear-Host
 Write-Host "======================================="
 Write-Host
 Write-Host "Firstname:      $firstname"
@@ -318,7 +320,7 @@ Write-Host "Display name:   $fullname"
 Write-Host "Logon name:     $logonname"
 Write-Host "Email Address:  $email"
 Write-Host "OU:             $OU"
-if ($Usertype -ieq 'normal') {Write-Host "Papercut ID:      $EmployeeID"}
+if ($Usertype -ieq 'normal') { Write-Host "Papercut ID:      $EmployeeID" }
 Write-Host
 Write-Host
 
@@ -335,7 +337,7 @@ if ($Proceed -ieq 'y') {
         Write-Host "Done..."
         Write-Host
         Write-Host
-        Sleep 5
+        Start-Sleep 5
    
   
         Write-Host "Adding Properties to the new user account."
@@ -351,7 +353,7 @@ if ($Proceed -ieq 'y') {
         Write-Host "Done..."
         Write-Host
         Write-Host
-        Sleep 5
+        Start-Sleep 5
        
       
         Write-Host "Adding Properties to the new user account."
@@ -367,7 +369,7 @@ if ($Proceed -ieq 'y') {
         Write-Host "Done..."
         Write-Host
         Write-Host
-        Sleep 5
+        Start-Sleep 5
            
           
         Write-Host "Adding Properties to the new user account."
@@ -385,66 +387,53 @@ if ($Proceed -ieq 'y') {
         Write-Host
     }
 }
-  
-Get-PSSession | Remove-PSSession
-
-$DomainControllers = Get-ADDomainController -Filter *
-ForEach ($DC in $DomainControllers.Name) {
-    Write-Host "Processing for "$DC -ForegroundColor Green
-    If ($Mode -eq "ExtraSuper") {
-        REPADMIN /kcc $DC
-        REPADMIN /syncall /A /e /q $DC
-    }
-    Else {
-        REPADMIN /syncall $DC "DC=Ellisonslegal,DC=com" /d /e /q
-    }
-}
-
-
-Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
+if (!$DomainAdminName) { $DomainAdminName = Read-Host "Enter your SRV Account Username (ELLNET\***-SRV)" }
+if (!$DomainPass) { $DomainPass = Get-Content ".\DomainAdminAccount.txt" | ConvertTo-SecureString }
+$DomainCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $DomainAdminName, $DomainPass
+Start-Process powershell.exe '.\SyncAD.ps1' -Credential $DomainCred
 
 if ($Usertype -ieq 'normal') { 
-Start-Sleep -s 15
-cls
-Write-Host "Sleeping until sync completed 20 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 15 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 10 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 5 minutes remaining"
-Start-Sleep -s 300
-cls
+    Start-Sleep -s 15
+    Clear-Host
+    Write-Host "Sleeping until sync completed 20 minutes remaining"
+    Start-Sleep -s 300
+    Write-Host "Sleeping - 15 minutes remaining"
+    Start-Sleep -s 300
+    Write-Host "Sleeping - 10 minutes remaining"
+    Start-Sleep -s 300
+    Write-Host "Sleeping - 5 minutes remaining"
+    Start-Sleep -s 300
+    Clear-Host
 
-Write-Host "Login into the cloud to see if the user exists!"
+    Write-Host "Login into the cloud to see if the user exists!"
 
-Import-Module MSOnline
-$AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."
-$Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
-$Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
-Connect-MsolService -Credential $Cred
-$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
-Import-PSSession $Session -AllowClobber
+    Import-Module MSOnline
+    $AdminName = Read-Host "Enter your Office 365 Admin email (First.Last@ellisonssolcitiors.com) etc..."
+    $Pass = Get-Content "O365Account.txt" | ConvertTo-SecureString
+    $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
+    Connect-MsolService -Credential $Cred
+    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
+    Import-PSSession $Session -AllowClobber
 
-#LICENSE USER ACCOUNT
+    #LICENSE USER ACCOUNT
 
-Set-MsolUser -UserPrincipalName $email -UsageLocation GB
-Set-MsolUserLicense -UserPrincipalName $email -AddLicenses reseller-account:SPE_E3
-$ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
-$AccountSkuId = "reseller-account:SPE_E3"
-$LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
-Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
+    Set-MsolUser -UserPrincipalName $email -UsageLocation GB
+    Set-MsolUserLicense -UserPrincipalName $email -AddLicenses reseller-account:SPE_E3
+    $ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
+    $AccountSkuId = "reseller-account:SPE_E3"
+    $LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
+    Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
 
-#Add SIP for skype #ADDED 25/09/2019
-foreach ($user in (Get-ADUser -Identity $logonname -Properties mail, ProxyAddresses, UserPrincipalName)) {
-    $user.ProxyAddresses += ("SIP:" + $email)
-    Set-ADUser -instance $user
+    #Add SIP for skype #ADDED 25/09/2019
+    foreach ($user in (Get-ADUser -Identity $logonname -Properties mail, ProxyAddresses, UserPrincipalName)) {
+        $user.ProxyAddresses += ("SIP:" + $email)
+        Set-ADUser -instance $user
     }
 
-#Setup OneDrive
-#[System.Windows.MessageBox]::Show('Please sign in to the below using your Domain Admin account to provison the OneDrive')
-Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com
-Request-SPOPersonalSite -UserEmails $email -NoWait
+    #Setup OneDrive
+    #[System.Windows.MessageBox]::Show('Please sign in to the below using your Domain Admin account to provison the OneDrive')
+    Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com
+    Request-SPOPersonalSite -UserEmails $email -NoWait
 }
 
 #Disable OWA
@@ -452,7 +441,7 @@ Set-CASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled 
 Set-Mailbox -Identity $email -MessageCopyForSentAsEnabled $True
 Set-Mailbox -Identity $email -MessageCopyForSendOnBehalfEnabled $True
 #Set Perms for Calendars
-$cal = $email+":\Calendar"
+$cal = $email + ":\Calendar"
 Set-MailboxFolderPermission $cal -User Default -AccessRights Reviewer
 
 
