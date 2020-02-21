@@ -6,6 +6,11 @@ Import-Module ".\EllisonsModule.psm1" -Force
 Write-Host "Loading checks...."
 Write-Host "Informational: Script has been run as user: $Global:currentUser" -ForegroundColor Green
 
+$dir = ".\creds"
+if(!(Test-Path -Path $dir )){
+    New-Item -ItemType directory -Path $dir
+}
+
 function Start-CheckAllCreds {
     #OnPrem Local Administrator account Check
     if (Test-path -Path ".\creds\$Global:currentUser-AdministratorName.txt") { $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt" }
