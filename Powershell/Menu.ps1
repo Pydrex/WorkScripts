@@ -2,7 +2,6 @@
 Set-Location -Path $PSScriptRoot
 Import-Module ".\EllisonsModule.psm1" -Force
 
-
 function Start-CheckAllCreds {
      #OnPrem Local Administrator account Check
      if (Test-path -Path ".\creds\$Global:currentUser-AdministratorName.txt") { $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt" }
