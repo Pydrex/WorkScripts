@@ -1,6 +1,7 @@
-##VERSION 3.0  - AP - 20/02/2020
+##VERSION 5.0  - AP - 21/02/2020
 Set-Location -Path $PSScriptRoot
 Import-Module ".\EllisonsModule.psm1" -Force
+
 
 function Start-CheckAllCreds {
      #OnPrem Local Administrator account Check
