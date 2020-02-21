@@ -44,15 +44,12 @@ else {
     "$MSOnline now installed"
 
 }
-Get-PSSession | Remove-PSSession
-Import-Module ActiveDirectory
-Import-Module MSOnline
 
 Set-Location -Path $PSScriptRoot
 $Global:currentUser = $env:UserName
 function Show-Menu { 
     param ( 
-         [string]$Title = 'Procedures' 
+        [string]$Title = 'Procedures' 
     ) 
     Clear-Host 
     Write-Host "================ $Title ================" 
@@ -71,7 +68,7 @@ function Show-Menu {
 } 
 
 function Enter-OnPrem365 {
-    
+    Import-Module ActiveDirectory
     Write-Output "Importing OnPrem Exchange Module"
     $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
     Import-Module MSOnline
@@ -79,10 +76,23 @@ function Enter-OnPrem365 {
 }
 
 Function Enter-Office365 {
-    365AccountCheck
+    Import-Module ActiveDirectory
+    Import-Module MSOnline
+    Set-CredsUp
     Connect-MsolService -Credential $Global:365Cred
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     Import-PSSession $Session -AllowClobber 
+}
+
+function Set-CredsUp {
+
+    $Global:365AdminPassword = Get-Content ".\creds\$Global:currentUser-O365Password.txt"
+    $Global:365AdminUsername = Get-Content ".\creds\$Global:currentUser-O365AdminName.txt"
+    $Global:SRVAdminPassword = Get-Content ".\creds\$Global:currentUser-SRVPassword.txt"
+    $Global:SRVAdminUsername = Get-Content ".\creds\$Global:currentUser-SRVAdminName.txt"
+    $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt"
+    $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
+
 }
 
 function Start-UserLeft {
@@ -133,8 +143,20 @@ function Start-AccessBehalf {
     Get-Mailbox $Requestee | Format-Table Name, grantsendonbehalfto -wrap
 }
 function Start-SyncAD {
-    Start-DomaincredCheck
-    Start-Process powershell.exe '.\SyncAD.ps1' -Credential $DomainCred
+    Get-PSSession | Remove-PSSession
+    $DomainControllers = Get-ADDomainController -Filter *
+    ForEach ($DC in $DomainControllers.Name) {
+        Write-Host "Processing for "$DC -ForegroundColor Green
+        If ($Mode -eq "ExtraSuper") {
+            REPADMIN /kcc $DC
+            REPADMIN /syncall /A /e /q $DC
+        }
+        Else {
+            REPADMIN /syncall $DC "DC=Ellisonslegal,DC=com" /d /e /q
+        }
+}
+
+Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
 }
 function Start-DisableOutOfOffice {
     Enter-Office365
