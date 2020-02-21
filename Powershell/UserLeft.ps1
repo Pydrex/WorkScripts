@@ -50,9 +50,8 @@ function Start-CheckAllCreds {
     Write-Host "Initialising" -BackgroundColor Gray
 }
 Start-CheckAllCreds
-Clear-Host
 Enter-Office365
-#Clear-Host
+Clear-Host
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
   
 Do {
