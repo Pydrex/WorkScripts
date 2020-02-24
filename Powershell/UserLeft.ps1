@@ -51,11 +51,11 @@ function Start-CheckAllCreds {
 }
 Start-CheckAllCreds
 Enter-Office365
-Clear-Host
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
-  
+
 Do {
     if ($Password) {
+        Clear-Host
         $EmailAddress = read-host 'Enter users email address you want to disable'
         Write-Host
         $sam = Get-ADUser -Filter { emailaddress -Like $EmailAddress } -Properties SamAccountName

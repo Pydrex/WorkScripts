@@ -86,6 +86,11 @@ do {
                'You Selected the sync AD procedure'
                Start-SyncAD
            
+          } '10' { 
+               Clear-Host 
+               'Unlocking AD Accounts...'
+               Start-UnlockedADAccounts 
+           
           } 'U' { 
                Clear-Host
                'Please update your creds'

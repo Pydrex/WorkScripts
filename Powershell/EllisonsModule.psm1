@@ -53,19 +53,27 @@ function Show-Menu {
     ) 
     Clear-Host 
     Write-Host "================ $Title ================" 
-    Write-Host "1: Press '1' for Full Access." 
-    Write-Host "2: Press '2' for Remove Access." 
-    Write-Host "3: Press '3' for Send On Behalf."
-    Write-Host "4: Press '4' for View Send on Behalf Permissions." 
-    Write-Host "5: Press '5' for the new user procedure." 
-    Write-Host "6: Press '6' for the user left procedure." 
-    Write-Host "7: Press '7' to connect to 365." 
-    Write-Host "8: Press '8' to select Disable Out Of Office." 
-    Write-Host "9: Press '9' to sync all AD Controllers."
-    Write-Host "U: Press 'U' to update stored creds in O365 file."
-    Write-Host "D: Press 'D' to update Domain Admin creds in DomainAdmin file." 
-    Write-Host "Q: Press 'Q' to quit." 
-} 
+    Write-Host "1:  Press '1' for Full Access." 
+    Write-Host "2:  Press '2' for Remove Access." 
+    Write-Host "3:  Press '3' for Send On Behalf."
+    Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
+    Write-Host "5:  Press '5' for the new user procedure." 
+    Write-Host "6:  Press '6' for the user left procedure." 
+    Write-Host "7:  Press '7' to connect to 365." 
+    Write-Host "8:  Press '8' to select Disable Out Of Office." 
+    Write-Host "9:  Press '9' to sync all AD Controllers."
+    Write-Host "10: Press '10' to Unlock AD Accounts and sync"
+    Write-Host "U:  Press 'U' to update stored creds in O365 file."
+    Write-Host "D:  Press 'D' to update Domain Admin creds in DomainAdmin file." 
+    Write-Host "Q:  Press 'Q' to quit." 
+}
+
+function Start-UnlockedADAccounts {
+    Import-Module ActiveDirectory
+    $UnlockedUsers = (Search-ADAccount -LockedOut | Unlock-ADAccount)
+    if($UnlockedUsers) {Write-Host '$UnlockedUsers'; Start-SyncAD} else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
+
+}
 
 function Enter-OnPrem365 {
     Import-Module ActiveDirectory
