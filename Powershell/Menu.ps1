@@ -41,10 +41,8 @@ function Start-CheckAllCreds {
  Clear-Host
 
 do { 
-     param ( 
-          [string]$Title = 'Main Menu' 
-      ) 
-      Clear-Host 
+     Clear-Host
+     [string]$Title = 'Main Menu' 
       Write-Host "================ $Title ================" 
       Write-Host "1:  Press '1' to Access the 365 Menu" 
       Write-Host "2:  Press '2' for the new user procedure." 

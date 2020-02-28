@@ -86,21 +86,18 @@ function Set-CredsUp {
 
 }
 function Start-365Menu {
-
-    param ( 
+    do {
+        Clear-Host
         [string]$Title = 'Office 365 Menu' 
-    ) 
-    Clear-Host 
-    Write-Host "================ $Title ================" 
-    Write-Host "1:  Press '1' for Full Access." 
-    Write-Host "2:  Press '2' for Remove Access." 
-    Write-Host "3:  Press '3' for Send On Behalf."
-    Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
-    Write-Host "5:  Press '5' to connect to 365." 
-    Write-Host "6:  Press '6' to select Disable Out Of Office." 
-    Write-Host "R:  Press 'R' to return to the previous menu." 
-    do { 
-        
+        Clear-Host 
+        Write-Host "================ $Title ================" 
+        Write-Host "1:  Press '1' for Full Access." 
+        Write-Host "2:  Press '2' for Remove Access." 
+        Write-Host "3:  Press '3' for Send On Behalf."
+        Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
+        Write-Host "5:  Press '5' to connect to 365." 
+        Write-Host "6:  Press '6' to select Disable Out Of Office." 
+        Write-Host "R:  Press 'R' to return to the previous menu." 
         $input = Read-Host "Please make a selection" 
         switch ($input) { 
              '1' { 
@@ -130,7 +127,8 @@ function Start-365Menu {
              } 'R' { 
                   return 
              } 
-        } 
+        }
+        pause
         Clear-Host
     } 
     until ($input -eq 'R')
