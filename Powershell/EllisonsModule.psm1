@@ -50,27 +50,6 @@ else {
 
 Set-Location -Path $PSScriptRoot
 $Global:currentUser = $env:UserName
-function Show-Menu { 
-    param ( 
-        [string]$Title = 'Procedures' 
-    ) 
-    Clear-Host 
-    Write-Host "================ $Title ================" 
-    Write-Host "1:  Press '1' for Full Access." 
-    Write-Host "2:  Press '2' for Remove Access." 
-    Write-Host "3:  Press '3' for Send On Behalf."
-    Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
-    Write-Host "5:  Press '5' for the new user procedure." 
-    Write-Host "6:  Press '6' for the user left procedure." 
-    Write-Host "7:  Press '7' to connect to 365." 
-    Write-Host "8:  Press '8' to select Disable Out Of Office." 
-    Write-Host "9:  Press '9' to sync all AD Controllers."
-    Write-Host "10: Press '10' to Unlock AD Accounts and sync"
-    Write-Host "11: Press '11' to Check/Set PaperCUT ID"
-    Write-Host "U:  Press 'U' to update stored creds in O365 file."
-    Write-Host "D:  Press 'D' to update Domain Admin creds in DomainAdmin file." 
-    Write-Host "Q:  Press 'Q' to quit." 
-}
 
 function Start-UnlockedADAccounts {
     Import-Module ActiveDirectory
@@ -106,7 +85,56 @@ function Set-CredsUp {
     $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
 
 }
+function Start-365Menu {
 
+    param ( 
+        [string]$Title = 'Office 365 Menu' 
+    ) 
+    Clear-Host 
+    Write-Host "================ $Title ================" 
+    Write-Host "1:  Press '1' for Full Access." 
+    Write-Host "2:  Press '2' for Remove Access." 
+    Write-Host "3:  Press '3' for Send On Behalf."
+    Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
+    Write-Host "5:  Press '5' to connect to 365." 
+    Write-Host "6:  Press '6' to select Disable Out Of Office." 
+    Write-Host "R:  Press 'R' to return to the previous menu." 
+    do { 
+        
+        $input = Read-Host "Please make a selection" 
+        switch ($input) { 
+             '1' { 
+                  Clear-Host
+                  'You chose the full access procedure' 
+                  Start-FullAccess
+             } '2' { 
+                  Clear-Host 
+                  'You chose the Remove access procedure'
+                  Start-RemoveAccess
+             } '3' { 
+                  Clear-Host 
+                  'You chose the Send On Behalf procedure'
+                  Start-SendOnBehalf
+             } '4' { 
+                  Clear-Host 
+                  'You chose the view access procedure'
+                  Start-AccessBehalf
+             } '5' { 
+                  Clear-Host 
+                  'You chose Office 365 connection'
+                  Enter-Office365
+             } '6' { 
+                  Clear-Host 
+                  'You Selected the Out Of Office Procedure Office 365 connection'
+                  Start-DisableOutOfOffice
+             } 'R' { 
+                  return 
+             } 
+        } 
+        Clear-Host
+    } 
+    until ($input -eq 'R')
+}
 function Start-PaperCutIDCheck {
 
     do { 

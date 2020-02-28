@@ -41,59 +41,42 @@ function Start-CheckAllCreds {
  Clear-Host
 
 do { 
-     Show-Menu 
+     param ( 
+          [string]$Title = 'Main Menu' 
+      ) 
+      Clear-Host 
+      Write-Host "================ $Title ================" 
+      Write-Host "1:  Press '1' to Access the 365 Menu" 
+      Write-Host "2:  Press '2' for the new user procedure." 
+      Write-Host "3:  Press '3' for the user left procedure." 
+      Write-Host "4:  Press '4' to sync all AD Controllers."
+      Write-Host "5:  Press '5' to Unlock AD Accounts and sync"
+      Write-Host "6:  Press '6' to access PaperCUT Menu"
+      Write-Host "Q:  Press 'Q' to quit." 
      $input = Read-Host "Please make a selection" 
      switch ($input) { 
           '1' { 
                Clear-Host
-               'You chose the full access procedure' 
-               Start-FullAccess
-          } '2' { 
-               Clear-Host 
-               'You chose the Remove access procedure'
-               Start-RemoveAccess
-          }
-          '3' { 
-               Clear-Host 
-               'You chose the Send On Behalf procedure'
-               Start-SendOnBehalf
-          }
-          '4' { 
-               Clear-Host 
-               'You chose the view access procedure'
-               Start-AccessBehalf
-          }
-          '5' { 
+               'Starting the 365 Options menu'
+               Start-365Menu
+          }'2' { 
                Clear-Host 
                'You chose the New user procedure'
                Start-NewUser
-          }
-          '6' { 
+          }'3' { 
                Clear-Host 
                'You chose Employee Left procedure'
                Start-UserLeft
-          }
-          '7' { 
-               Clear-Host 
-               'You chose Office 365 connection'
-               Enter-Office365
-          } '8' { 
-               Clear-Host 
-               'You Selected the Out Of Office Procedure Office 365 connection'
-               Start-DisableOutOfOffice
-          } '9' { 
+          } '4' { 
                Clear-Host 
                'You Selected the sync AD procedure'
                Start-SyncAD
-           
-          } '10' { 
+          } '5' { 
                Clear-Host 
                'Unlocking AD Accounts...'
                Start-UnlockedADAccounts 
-           
-          } '11' { 
-               Clear-Host 
-               'Checking Papercut IDs...'
+          } '6' { 
+               Clear-Host
                Start-PaperCutIDCheck
            
           }  'U' { 
