@@ -47,8 +47,6 @@ function Start-CheckAllCreds {
     Write-Host "Initialising" -BackgroundColor Gray
 }
 Start-CheckAllCreds
-
-Sleep 2
 Clear-Host
 do { 
     Write-Host "1: Press '1' for General Menu." 
@@ -68,6 +66,6 @@ do {
                 Start-AdministratorUpdate
         }
     } 
-    pause 
+    pause
 } 
 until (!$input)

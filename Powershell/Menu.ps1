@@ -91,7 +91,12 @@ do {
                'Unlocking AD Accounts...'
                Start-UnlockedADAccounts 
            
-          } 'U' { 
+          } '11' { 
+               Clear-Host 
+               'Checking Papercut IDs...'
+               Start-PaperCutIDCheck
+           
+          }  'U' { 
                Clear-Host
                'Please update your creds'
                Start-UpdateCred

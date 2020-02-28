@@ -1,8 +1,8 @@
 #Module
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.1.0" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.1.1" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-
+Write-Host "Updated 28/02/2020" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -66,6 +66,7 @@ function Show-Menu {
     Write-Host "8:  Press '8' to select Disable Out Of Office." 
     Write-Host "9:  Press '9' to sync all AD Controllers."
     Write-Host "10: Press '10' to Unlock AD Accounts and sync"
+    Write-Host "11: Press '11' to Check/Set PaperCUT ID"
     Write-Host "U:  Press 'U' to update stored creds in O365 file."
     Write-Host "D:  Press 'D' to update Domain Admin creds in DomainAdmin file." 
     Write-Host "Q:  Press 'Q' to quit." 
@@ -104,6 +105,68 @@ function Set-CredsUp {
     $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt"
     $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
 
+}
+
+function Start-PaperCutIDCheck {
+
+    do { 
+        Write-Host "1: Press '1' for set someones Papercut ID." 
+        Write-Host "2: Press '2' to check if Papercut ID in use"
+        Write-Host "3: Press '3' to find a users ID with their email"
+        Write-Host "3: Press 'R' to Return to previous menus"
+        $input = Read-Host "Please make a selection" 
+        switch ($input) { '1' {
+                Clear-Host
+                $finding = $null
+                $EmployeeID = $null
+                $email = $null
+                $email = Read-Host "Enter the email address of the User"
+                  $EmployeeID = Read-Host "Enter the Papercut Code to set"
+                  $finding = Get-ADUser -Filter { EmployeeId -eq $EmployeeID } -Properties EmployeeId
+                  Clear-Host
+                  if ($finding) {
+                      $idLookup = $finding | ForEach-Object { $idLookup = @{ } } { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] += 1 } } { $idLookup }
+                      $filteredUsers = $finding | Where-Object { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] -gt 1 } }
+                      $report = $finding | Select-Object -Property SamAccountName, EmployeeId
+                      Write-Host "!DUPLICATE PAPERCUT ID FOUND! - PLEASE CHANGE" -ForegroundColor:Red
+                      $report | Format-Table | Out-String|% {Write-Host $_ -BackgroundColor:Yellow -ForegroundColor:Black}
+                  } else {
+                      $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
+                      $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+                      Get-ADUser $sam -Server $Server | Set-ADUser -EmployeeID $EmployeeID
+                      Write-Host "Set PapercutID for $sam" -ForegroundColor:Green
+                  }
+             } '2' {
+                Clear-Host
+                $finding = $null
+                $EmployeeID = $null
+                $EmployeeID = Read-Host "Enter a Papercut ID to check"
+                $finding = Get-ADUser -Filter { EmployeeId -eq $EmployeeID } -Properties EmployeeId
+                if ($finding) {
+                    $idLookup = $finding | ForEach-Object { $idLookup = @{ } } { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] += 1 } } { $idLookup }
+                    $filteredUsers = $finding | Where-Object { if ($_.EmployeeId) { $idLookup[$_.EmployeeId] -gt 1 } }
+                    $report = $finding | Select-Object -Property SamAccountName, EmployeeId
+                    Write-Host "!PAPERCUT ID FOUND!" -ForegroundColor:Red -BackgroundColor:Yellow
+                    $report | Format-Table | Out-String|% {Write-Host $_ -BackgroundColor:Yellow -ForegroundColor:Black}
+                } else {
+                    Write-Host "Papercut ID is not in use" -ForegroundColor:Green
+                }
+            } '3' {
+                Clear-Host
+                $email = $null
+                $EmployeeID = $null
+                $email = Read-Host "Enter the email address of the User"
+                $finding = Get-ADUser -Filter { emailaddress -eq $email } -Properties EmployeeId
+                $report = $finding | Select-Object -Property SamAccountName, EmployeeId
+                $report | Format-Table | Out-String|% {Write-Host $_ -BackgroundColor:Green -ForegroundColor:Black}
+            } 'R' {
+                return
+            }
+        } 
+        pause
+        Clear-Host
+    } 
+    until ($input -eq 'R')
 }
 
 function Start-UserLeft {
