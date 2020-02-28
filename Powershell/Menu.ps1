@@ -106,6 +106,10 @@ do {
                'Please update your domain admin creds'
                Start-UpdateDomainCreds 
            
+          } 'egg' { 
+               Clear-Host
+               Start-Egg
+           
           } 'q' { 
                'Thank you, come again'
                return 

@@ -175,6 +175,10 @@ function Start-UserLeft {
 function Start-NewUser {
     & './NewUser.ps1'
 }
+
+function Start-Egg {
+    & './Snake.ps1'
+}
 function Start-FullAccess {
     Enter-Office365
     Clear-Host
