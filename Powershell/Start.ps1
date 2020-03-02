@@ -59,7 +59,7 @@ do {
               Clear-Host
               Start-Process powershell.exe '.\Menu.ps1' -Credential $Script:SRVCred
          } '2' { 
-                Start-UpdateDomainCreds
+                Start-UpdateSRVCreds
          } '3' { 
                 Start-UpdateCreds
         }  '4' { 

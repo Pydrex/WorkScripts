@@ -52,19 +52,18 @@ function Start-CheckAllCreds {
 Start-CheckAllCreds
 Enter-Office365
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
-Import-Module ActiveDirectory
-Import-Module MSOnline
 Do {
     if ($Password) {
-        #Clear-Host
+        Clear-Host
         $EmailAddress = read-host 'Enter users email address you want to disable'
         Write-Host
         $sam = Get-ADUser -Filter { emailaddress -Like $EmailAddress } -Properties SamAccountName
-        $logonname = $sam | Select-Object -Property SamAccountName
+        $logonname = (Get-ADUser $sam | Select-Object -ExpandProperty SamAccountName)
           
         Write-Host "Checking if $sam is a valid user..."
         If ($(Get-ADUser $sam)) {
-            Write-Host "USER FOUND:" (Get-ADUser $sam | Select-Object -ExpandProperty DistinguishedName) -ForegroundColor:Green
+            Write-Host "USER FOUND: " (Get-ADUser $sam | Select-Object -ExpandProperty DistinguishedName) -ForegroundColor:Green
+            Write-Host "Username is " $logonname -ForegroundColor:Green
             Write-Host
   
             $Proceed = Read-Host "Is this correct? (y/n)"
@@ -79,7 +78,7 @@ Do {
             Write-Host "$sam was not a valid user - CHECK AGAIN" -ForegroundColor:Red
             Start-Sleep 4
             $Exit = $false
-            #Clear-Host
+            Clear-Host
         }
   
     }
@@ -115,16 +114,15 @@ Write-host "Completed.  Password changed to $Password for account $EmailAddress"
 ForEach-Object {
     Set-MsolUserLicense -UserPrincipalName $EmailAddress -RemoveLicenses $_
 }
-
 Get-ADUser $logonname | Move-ADObject -TargetPath 'OU=Disabled user accounts,DC=Ellisonslegal,DC=com'
 Disable-ADAccount -identity $logonname
 
 Set-ADUser -Identity $logonname -Replace @{msExchHideFromAddressLists = $True }
 
-Get-ADUser $logonname -Properties MemberOf | Select-Object -Expand MemberOf | ForEach-Object { Remove-ADGroupMember $_ -member $logonname }
+Get-ADUser $sam -Properties MemberOf | Select-Object -Expand MemberOf | ForEach-Object { Remove-ADGroupMember $_ -member $logonname }
 $datestamp = Get-Date -Format g
 $initials = Read-host "Enter your Initials for the lock out stamp"
-Get-aduser $logonname -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
+Get-aduser $sam -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
 $contactemail = read-host 'Enter the full email of the person who should be in the Out Of Office reply example (Contact HoD for email)'
 $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
