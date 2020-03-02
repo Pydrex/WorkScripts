@@ -50,7 +50,8 @@ Clear-Host
 
 $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
 Enter-OnPrem365
-
+Import-Module ActiveDirectory
+Import-Module MSOnline
 $Admin = "Administrator"
 $Pass = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
 $Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass

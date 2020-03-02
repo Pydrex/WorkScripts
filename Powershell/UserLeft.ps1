@@ -53,6 +53,7 @@ Start-CheckAllCreds
 Enter-Office365
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
 Import-Module ActiveDirectory
+Import-Module MSOnline
 Do {
     if ($Password) {
         #Clear-Host
