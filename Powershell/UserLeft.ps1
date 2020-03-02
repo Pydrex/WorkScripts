@@ -63,8 +63,8 @@ Do {
         $logonname = $sam | Select-Object -Property SamAccountName
           
         Write-Host "Checking if $sam is a valid user..."
-        If ($(Get-ADUser $logonname)) {
-            Write-Host "USER FOUND:" (Get-ADUser $logonname | Select-Object -ExpandProperty DistinguishedName) -ForegroundColor:Green
+        If ($(Get-ADUser $sam)) {
+            Write-Host "USER FOUND:" (Get-ADUser $sam | Select-Object -ExpandProperty DistinguishedName) -ForegroundColor:Green
             Write-Host
   
             $Proceed = Read-Host "Is this correct? (y/n)"
