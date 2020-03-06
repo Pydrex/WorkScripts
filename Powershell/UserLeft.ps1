@@ -91,7 +91,7 @@ Do {
 
 $Proceed = Read-Host "Do you want to add permission to acess this inbox (y/n)"
 Write-Host
-  
+Import-Module ActiveDirectory
   
 if ($Proceed -ieq 'y') {
     $supervisor = read-Host "User who is going to be having access to shared mailbox"

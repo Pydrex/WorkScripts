@@ -49,6 +49,7 @@ do {
       Write-Host "4:  Press '4' to sync all AD Controllers."
       Write-Host "5:  Press '5' to Unlock AD Accounts and sync"
       Write-Host "6:  Press '6' to access PaperCUT Menu"
+      Write-Host "7:  Press '7' to update the phone list"
       Write-Host "Q:  Press 'Q' to quit." 
      $input = Read-Host "Please make a selection" 
      switch ($input) { 
@@ -75,8 +76,11 @@ do {
           } '6' { 
                Clear-Host
                Start-PaperCutIDCheck
-           
-          }  'U' { 
+          } '7' { 
+               Clear-Host
+               'Updating phone list'
+               Start-UpdatePhoneList
+          } 'U' { 
                Clear-Host
                'Please update your creds'
                Start-UpdateCred

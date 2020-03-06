@@ -1,8 +1,9 @@
 #Module
+
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.1.4" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.2" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 02/03/2020 - 12:32" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 06/03/2020 - 12:36" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -47,6 +48,9 @@ else {
     "$MSOnline now installed"
 
 }
+
+#requires -module ActiveDirectory
+#requires -module MSOnline
 
 Set-Location -Path $PSScriptRoot
 $Global:currentUser = $env:UserName
@@ -205,6 +209,12 @@ function Start-NewUser {
 function Start-Egg {
     & './Snake.ps1'
 }
+
+function Start-UpdatePhoneList{
+    & './UpdatePhoneLists.ps1'
+    
+}
+
 function Start-FullAccess {
     Enter-Office365
     Clear-Host
