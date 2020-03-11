@@ -52,11 +52,11 @@ $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
 Enter-OnPrem365
 Import-Module ActiveDirectory
 Import-Module MSOnline
-$Admin = "Administrator"
-$Pass = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
-$Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
-$ExchangeServer = "EZ-AZ-EXCHB.ellisonslegal.com"
-$OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Lcreds
+#$Admin = "Administrator"
+#$Pass = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
+#$Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
+#$ExchangeServer = "EZ-AZ-EXCHB.ellisonslegal.com"
+#$OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Lcreds
 
 Write-Host "Done..."
 Clear-Host

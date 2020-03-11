@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.2" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.3" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 06/03/2020 - 12:36" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 11/03/2020 - 12:41" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -63,6 +63,7 @@ function Start-UnlockedADAccounts {
 }
 
 function Enter-OnPrem365 {
+    Get-PSSession | Remove-PSSession
     Import-Module ActiveDirectory
     Write-Output "Importing OnPrem Exchange Module"
     $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
@@ -71,6 +72,7 @@ function Enter-OnPrem365 {
 }
 
 Function Enter-Office365 {
+    Get-PSSession | Remove-PSSession
     Import-Module ActiveDirectory
     Import-Module MSOnline
     Set-CredsUp
