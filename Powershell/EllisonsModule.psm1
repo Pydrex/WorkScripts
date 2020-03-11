@@ -62,15 +62,6 @@ function Start-UnlockedADAccounts {
 
 }
 
-function Enter-OnPrem365 {
-    Get-PSSession | Remove-PSSession
-    Import-Module ActiveDirectory
-    Write-Output "Importing OnPrem Exchange Module"
-    $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
-    Import-Module MSOnline
-    Import-PSSession $OnPrem | Out-Null
-}
-
 Function Enter-Office365 {
     Get-PSSession | Remove-PSSession
     Import-Module ActiveDirectory

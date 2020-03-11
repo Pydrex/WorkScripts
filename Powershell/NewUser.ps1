@@ -48,15 +48,15 @@ function Start-CheckAllCreds {
 Start-CheckAllCreds
 Clear-Host
 
-$server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
-Enter-OnPrem365
-Import-Module ActiveDirectory
-Import-Module MSOnline
-#$Admin = "Administrator"
-#$Pass = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
-#$Lcreds = new-object -typename System.Management.Automation.PSCredential -argumentlist $Admin, $Pass
-#$ExchangeServer = "EZ-AZ-EXCHB.ellisonslegal.com"
-#$OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Lcreds
+$Server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+
+if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
+        Import-Module ActiveDirectory
+        Write-Output "Importing OnPrem Exchange Module"
+        $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
+        Import-Module MSOnline
+ }
+Import-PSSession $OnPrem | Out-Null
 
 Write-Host "Done..."
 Clear-Host
@@ -221,7 +221,8 @@ if ($CUser) {
     $Manager = $CUser.Manager
   
     #Getting Membership groups from copied user.
-    $MemberOf = Get-ADPrincipalGroupMembership $CUser | Where-Object { $_.Name -ine "Domain Users" }
+    $MemberOf = (Get-ADUser -Identity $CUser -Properties MemberOf).MemberOf -replace '^CN=([^,]+),OU=.+$','$1'
+    #$MemberOf = Get-ADPrincipalGroupMembership $CUser -Server $server | Where-Object { $_.Name -ine "Domain Users" }
 
     if (!$MemberOf) {
         Write-Host "FAILED TO GET GROUPS FROM USER - RESTART POWERSHELL AS ADMIN AND MAKE SURE ActiveDirectory is IMPORTED" -ForegroundColor:RED
@@ -267,7 +268,6 @@ DO {
     }
 } Until ($taken -eq $false)
 $logonname = $logonname.toLower()
-Start-Sleep 3
 
 if ($Usertype -ieq 'normal') {
     $email = "$firstname.$lastname@$domain"
@@ -358,7 +358,6 @@ if ($Proceed -ieq 'y') {
         Write-Host
     }
 }
-
 Start-SyncAD
 
 if ($Usertype -ieq 'normal') { 
