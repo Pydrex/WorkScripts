@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.3" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.4" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 11/03/2020 - 12:41" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 18/03/2020 - 09:50" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -71,7 +71,6 @@ Function Enter-Office365 {
     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     Import-PSSession $Session -AllowClobber 
 }
-
 function Set-CredsUp {
 
     $Global:365AdminPassword = Get-Content ".\creds\$Global:currentUser-O365Password.txt"
@@ -93,7 +92,8 @@ function Start-365Menu {
         Write-Host "3:  Press '3' for Send On Behalf."
         Write-Host "4:  Press '4' for View Send on Behalf Permissions." 
         Write-Host "5:  Press '5' to connect to 365." 
-        Write-Host "6:  Press '6' to select Disable Out Of Office." 
+        Write-Host "6:  Press '6' to select Disable Out Of Office."
+        Write-Host "7:  Press '7' to enable MFA and OWA."
         Write-Host "R:  Press 'R' to return to the previous menu." 
         $input = Read-Host "Please make a selection" 
         switch ($input) { 
@@ -121,6 +121,10 @@ function Start-365Menu {
                   Clear-Host 
                   'You Selected the Out Of Office Procedure Office 365 connection'
                   Start-DisableOutOfOffice
+             } '7' { 
+                    Clear-Host 
+                    'You selected Enable OWA and MFA'
+                    Start-EnableOWA  
              } 'R' { 
                   return 
              } 
@@ -248,6 +252,19 @@ function Start-AccessBehalf {
     $Requestee = $null
     $Requestee = Read-Host "Whos mailbox do you want to check permissions on?"
     Get-Mailbox $Requestee | Format-Table Name, grantsendonbehalfto -wrap
+}
+
+function Start-EnableOWA {
+    Enter-Office365
+    Clear-Host
+    $email = $null
+    $email = Read-Host "Whos mailbox do you want to enable OWA and MFA on?"
+    $st = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationRequirement
+    $st.RelyingParty = "*"
+    $st.State = "Enabled"
+    $sta = @($st)
+    Set-MsolUser -UserPrincipalName $email -StrongAuthenticationRequirements $sta
+    Set-CASMailbox -Identity $email -OWAEnabled $true
 }
 function Start-SyncAD {
     Get-PSSession | Remove-PSSession
