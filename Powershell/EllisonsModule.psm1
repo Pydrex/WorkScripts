@@ -265,7 +265,16 @@ function Start-EnableOWA {
     $sta = @($st)
     Set-MsolUser -UserPrincipalName $email -StrongAuthenticationRequirements $sta
     Set-CASMailbox -Identity $email -OWAEnabled $true
-}
+   
+    $mfaenabled = Get-MsolUser -UserPrincipalName $email | select UserPrincipalName, `
+        @{Name = 'MFAEnabled'; Expression={if ($_.StrongAuthenticationRequirements) {Write-Output $true} else {Write-Output $false}}}
+        Write-Output $mfaenabled | Sort-Object MFAEnabled
+    
+    $owaenabled = Get-CASMailbox -Identity $email | Select-Object Identity, `
+        @{Name = 'OWAisEnabled'; Expression={if ($_.OWAEnabled) {Write-Output $true} else {Write-Output $false}}}
+        Write-Output $owaenabled | Sort-Object OWAisEnabled
+    }
+    
 function Start-SyncAD {
     Get-PSSession | Remove-PSSession
     $DomainControllers = Get-ADDomainController -Filter *
