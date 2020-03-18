@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.4" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.5" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 18/03/2020 - 09:50" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 18/03/2020 - 16:41" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -63,12 +63,15 @@ function Start-UnlockedADAccounts {
 }
 
 Function Enter-Office365 {
-    Get-PSSession | Remove-PSSession
-    Import-Module ActiveDirectory
-    Import-Module MSOnline
-    Set-CredsUp
-    Connect-MsolService -Credential $Global:365Cred
-    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+
+    if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
+        Get-PSSession | Remove-PSSession
+        Import-Module ActiveDirectory
+        Import-Module MSOnline
+        Set-CredsUp
+        Connect-MsolService -Credential $Global:365Cred
+        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+    }
     Import-PSSession $Session -AllowClobber 
 }
 function Set-CredsUp {
@@ -94,6 +97,7 @@ function Start-365Menu {
         Write-Host "5:  Press '5' to connect to 365." 
         Write-Host "6:  Press '6' to select Disable Out Of Office."
         Write-Host "7:  Press '7' to enable MFA and OWA."
+        Write-Host "8:  Press '8' to disable OWA."
         Write-Host "R:  Press 'R' to return to the previous menu." 
         $input = Read-Host "Please make a selection" 
         switch ($input) { 
@@ -125,7 +129,11 @@ function Start-365Menu {
                     Clear-Host 
                     'You selected Enable OWA and MFA'
                     Start-EnableOWA  
-             } 'R' { 
+             } '8' { 
+                    Clear-Host 
+                    'You selected Disable OWA'
+                    Start-DisableOWA 
+                } 'R' { 
                   return 
              } 
         }
@@ -258,10 +266,10 @@ function Start-EnableOWA {
     Enter-Office365
     Clear-Host
     $email = $null
-    $email = Read-Host "Whos mailbox do you want to enable OWA and MFA on?"
+    $email = Read-Host "Whos email address do you want to enable OWA and MFA on?"
     $st = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationRequirement
     $st.RelyingParty = "*"
-    $st.State = "Enabled"
+    $st.State = "Enforced"
     $sta = @($st)
     Set-MsolUser -UserPrincipalName $email -StrongAuthenticationRequirements $sta
     Set-CASMailbox -Identity $email -OWAEnabled $true
@@ -274,6 +282,18 @@ function Start-EnableOWA {
         @{Name = 'OWAisEnabled'; Expression={if ($_.OWAEnabled) {Write-Output $true} else {Write-Output $false}}}
         Write-Output $owaenabled | Sort-Object OWAisEnabled
     }
+
+function Start-DisableOWA {
+        Enter-Office365
+        Clear-Host
+        $email = $null
+        $email = Read-Host "Whos email address do you want to disable OWA and MFA on?"
+        Set-CASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled $false -OWAEnabled $false
+        
+        $owaenabled = Get-CASMailbox -Identity $email | Select-Object Identity, `
+            @{Name = 'OWAisEnabled'; Expression={if ($_.OWAEnabled) {Write-Output $true} else {Write-Output $false}}}
+            Write-Output $owaenabled | Sort-Object OWAisEnabled
+}
     
 function Start-SyncAD {
     Get-PSSession | Remove-PSSession
