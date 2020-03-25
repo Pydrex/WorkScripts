@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 1.5" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 1.5.1" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 18/03/2020 - 16:41" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 25/03/2020 - 10:43" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -71,8 +71,9 @@ Function Enter-Office365 {
         Set-CredsUp
         Connect-MsolService -Credential $Global:365Cred
         $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+        Import-PSSession $Session -AllowClobber 
     }
-    Import-PSSession $Session -AllowClobber 
+    
 }
 function Set-CredsUp {
 
@@ -264,7 +265,7 @@ function Start-AccessBehalf {
 
 function Start-EnableOWA {
     Enter-Office365
-    Clear-Host
+    #Clear-Host
     $email = $null
     $email = Read-Host "Whos email address do you want to enable OWA and MFA on?"
     $st = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationRequirement
