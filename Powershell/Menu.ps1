@@ -96,6 +96,7 @@ do {
            
           } 'q' { 
                'Thank you, come again'
+               Get-PSSession | Remove-PSSession
                return 
           } 
      } 
