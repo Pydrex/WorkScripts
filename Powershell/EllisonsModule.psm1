@@ -265,7 +265,7 @@ function Start-AccessBehalf {
 
 function Start-EnableOWA {
     Enter-Office365
-    #Clear-Host
+    Clear-Host
     $email = $null
     $email = Read-Host "Whos email address do you want to enable OWA and MFA on?"
     $st = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationRequirement
