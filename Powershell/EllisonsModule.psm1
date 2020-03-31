@@ -72,10 +72,7 @@ Function Enter-Office365 {
         Connect-MsolService -Credential $Global:365Cred
         $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     }
-    if ($Session) {
-        Import-PSSession $Session -AllowClobber
-    }
-    
+    if ($Session) {Import-PSSession $Session -AllowClobber}
 }
 function Set-CredsUp {
 
@@ -265,16 +262,42 @@ function Start-AccessBehalf {
     Get-Mailbox $Requestee | Format-Table Name, grantsendonbehalfto -wrap
 }
 
+# Sets the MFA requirement state
+function Set-MfaState {
+
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipelineByPropertyName=$True)]
+        $ObjectId,
+        [Parameter(ValueFromPipelineByPropertyName=$True)]
+        $UserPrincipalName,
+        [ValidateSet("Disabled","Enabled","Enforced")]
+        $State
+    )
+
+    Process {
+        Write-Verbose ("Setting MFA state for user '{0}' to '{1}'." -f $ObjectId, $State)
+        $Requirements = @()
+        if ($State -ne "Disabled") {
+            $Requirement =
+                [Microsoft.Online.Administration.StrongAuthenticationRequirement]::new()
+            $Requirement.RelyingParty = "*"
+            $Requirement.State = $State
+            $Requirements += $Requirement
+        }
+
+        Set-MsolUser -ObjectId $ObjectId -UserPrincipalName $UserPrincipalName `
+                     -StrongAuthenticationRequirements $Requirements
+    }
+}
 function Start-EnableOWA {
     Enter-Office365
     Clear-Host
     $email = $null
     $email = Read-Host "Whos email address do you want to enable OWA and MFA on?"
-    $st = New-Object -TypeName Microsoft.Online.Administration.StrongAuthenticationRequirement
-    $st.RelyingParty = "*"
-    $st.State = "Enforced"
-    $sta = @($st)
-    Set-MsolUser -UserPrincipalName $email -StrongAuthenticationRequirements $sta
+    $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
+    Add-ADGroupMember -Identity "MFA Users" -Members $sam
+    Set-MfaState -UserPrincipalName $email -State Enforced
     Set-CASMailbox -Identity $email -OWAEnabled $true
    
     $mfaenabled = Get-MsolUser -UserPrincipalName $email | select UserPrincipalName, `
@@ -291,11 +314,20 @@ function Start-DisableOWA {
         Clear-Host
         $email = $null
         $email = Read-Host "Whos email address do you want to disable OWA and MFA on?"
+        $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
+        Remove-ADGroupMember -Identity "MFA Users" -Members $sam -Confirm:$false
+        Set-MfaState -UserPrincipalName $email -State Disabled
         Set-CASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled $false -OWAEnabled $false
         
+        $mfaenabled = Get-MsolUser -UserPrincipalName $email | select UserPrincipalName, `
+        @{Name = 'MFAEnabled'; Expression={if ($_.StrongAuthenticationRequirements) {Write-Output $true} else {Write-Output $false}}}
+        Write-Output $mfaenabled | Sort-Object MFAEnabled
+
         $owaenabled = Get-CASMailbox -Identity $email | Select-Object Identity, `
             @{Name = 'OWAisEnabled'; Expression={if ($_.OWAEnabled) {Write-Output $true} else {Write-Output $false}}}
             Write-Output $owaenabled | Sort-Object OWAisEnabled
+
+        
 }
     
 function Start-SyncAD {
