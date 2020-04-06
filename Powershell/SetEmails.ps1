@@ -1,11 +1,14 @@
-﻿Set-Location -Path $PSScriptRoot
+﻿
+###WILL NEED TO SET PEOPLES OWA TO PRIMARY SMTP IF RAN!
+Set-Location -Path $PSScriptRoot
 $CSVFileName = Read-host "Enter the full Path to the CSV (EmailAddress,ContactAddress)"
-$logfile = "results.log"
+$logfile = "resultssetup.log"
 
 Function Connect365 {
      Set-ExecutionPolicy Unrestricted -Force 
      Import-Module MSOnline
      Get-PSSession | Remove-PSSession
+     Import-Module ActiveDirectory
 
      #$credential = Get-Credential
      #$credential.Password | ConvertFrom-SecureString | Out-File C:\PowerShell\O365Account.txt
@@ -32,17 +35,25 @@ If (Test-Path $CSVFileName) {
     foreach ($usr in $csvfile) {
 
         try {
-            #Create OOO message
-            $contact = $usr.ContactAddress
-            $email = $usr.EmailAddress
-            $message = "Thank you for your email. In light the COVID19 pandemic we are following government guidelines on social distancing and therefore unable to attend our offices. If your query is urgent, please contact: $contact"
-            Set-MailboxAutoReplyConfiguration $usr.EmailAddress -AutoReplyState enabled -ExternalAudience all -InternalMessage $message -ExternalMessage $message -ErrorAction STOP
-            Set-Mailbox -Identity $email -DeliverToMailboxAndForward $true -ForwardingAddress $contact
+            $ellisons = $usr.Ellisons
+            $SMTP1 = $usr.SMTP1
+            $SMTP2 = $usr.SMTP2
+            $SMTP3 = $usr.SMTP3
+
+            $filtersam = Get-ADUser -Filter { emailaddress -eq $Ellisons } -Properties SamAccountName
+            $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+            #$sam = $filtersam | Select-Object -Property SamAccountName
+            $identitysam = (Get-ADUser -Identity $filtersam -Properties mail, ProxyAddresses, UserPrincipalName)
+            
+            if ($SMTP1) {$identitysam.ProxyAddresses += ($SMTP1); Set-ADUser -instance $identitysam; Write-Host "Set $SMTP1"}
+            if ($SMTP2) {$identitysam.ProxyAddresses += ($SMTP2); Set-ADUser -instance $identitysam; Write-Host "Set $SMTP2"}
+            if ($SMTP3) {$identitysam.ProxyAddresses += ($SMTP3); Set-ADUser -instance $identitysam; Write-Host "Set $SMTP3"}
+            
             "$($usr.EmailAddress) was set successfully." | Out-File $logfile -Append
         }
         catch {
             
-            $message = "A problem occured trying to create the $($usr.EmailAddress) out of office"
+            $message = "A problem occured updating $($usr.Ellisons)"
             $message | Out-File $logfile -Append
             Write-Warning $message
             Write-Warning $_.Exception.Message
