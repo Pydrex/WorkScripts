@@ -62,6 +62,39 @@ function Start-UnlockedADAccounts {
 
 }
 
+function Start-PWDReset {
+    Import-Module ActiveDirectory
+    $User = $null
+        Do {
+                $User = Read-Host "Enter in the USERNAME of the person you wish to reset password expiry on"
+                Write-Host
+        
+                
+                Write-Host "Checking if $User is a valid user..." -ForegroundColor:Green
+                If ($(Get-ADUser -Filter { SamAccountName -eq $User })) {
+                    Write-Host "Found user: Is this correct?" (Get-ADUser $User | Select-Object -ExpandProperty DistinguishedName)
+                    Write-Host
+        
+                    $Proceed = Read-Host "Continue? (y/n)"
+                    Write-Host
+        
+        
+                    if ($Proceed -ieq 'y') {
+                        Get-ADUser $User | .\pwdset.ps1
+                        $Exit = $true
+                    }
+        
+                }
+                else {
+                    Write-Host "$User was not a valid user" -ForegroundColor:Red
+                    Start-Sleep 2
+                    $Exit = $false
+                    Clear-Host
+                }
+        
+        } until ($Exit -eq $true)
+}
+
 Function Enter-Office365 {
 
     if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 

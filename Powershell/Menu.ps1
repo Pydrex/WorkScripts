@@ -51,6 +51,7 @@ do {
       Write-Host "6:  Press '6' to access PaperCUT Menu"
       Write-Host "7:  Press '7' to update the phone list"
       Write-Host "8:  Press '8' to delete ADConnect sync"
+      Write-Host "9:  Press '9' to reset someones password expiry timer"
       Write-Host "Q:  Press 'Q' to quit." 
      $input = Read-Host "Please make a selection" 
      switch ($input) { 
@@ -84,6 +85,9 @@ do {
           } '8' { 
                Clear-Host
                Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
+          } '9' { 
+               Clear-Host
+               Start-PWDReset
           } 'U' { 
                Clear-Host
                'Please update your creds'
