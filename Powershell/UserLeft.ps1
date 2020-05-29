@@ -119,15 +119,15 @@ Disable-ADAccount -identity $logonname
 
 Set-ADUser -Identity $logonname -Replace @{msExchHideFromAddressLists = $True }
 
-Get-ADUser $sam -Properties MemberOf | Select-Object -Expand MemberOf | ForEach-Object { Remove-ADGroupMember $_ -member $logonname }
+Get-ADUser $logonname -Properties MemberOf | Select-Object -Expand MemberOf | ForEach-Object { Remove-ADGroupMember $_ -member $logonname -Confirm:$False }
 $datestamp = Get-Date -Format g
 $initials = Read-host "Enter your Initials for the lock out stamp"
-Get-aduser $sam -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
+Get-aduser $logonname -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
 $contactemail = read-host 'Enter the full email of the person who should be in the Out Of Office reply example (Contact HoD for email)'
 $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 Set-MailboxAutoReplyConfiguration -Identity $EmailAddress -AutoReplyState Enabled -InternalMessage $internalMsg -ExternalMessage $externalMsg
 
-Start-SyncAD
+#Start-SyncAD
 
 Get-PSSession | Remove-PSSession
