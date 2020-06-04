@@ -10,10 +10,11 @@ Write-Host "Updated 22/04/2020 - 10:21" -BackgroundColor Black -ForegroundColor 
 #######################################################################
 Set-Location -Path $PSScriptRoot
 $AzureAD = "AzureAD"
+$AzureADPreview = "AzureADPreview"
 
 $Installedmodules = Get-InstalledModule
 
-if ($Installedmodules.name -contains $AzureAD) {
+if ($Installedmodules.name -contains $AzureAD -or $AzureADPreview) {
 
     "$AzureAD is installed "
 

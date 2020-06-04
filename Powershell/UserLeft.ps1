@@ -51,6 +51,7 @@ function Start-CheckAllCreds {
 }
 Start-CheckAllCreds
 Enter-Office365
+Connect-AzureAd
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
 Do {
     if ($Password) {
@@ -107,6 +108,8 @@ Set-MsolUserPassword -UserPrincipalName $EmailAddress -NewPassword $Password -Fo
 
 Write-host "Completed.  Password changed to $Password for account $EmailAddress"
 
+Set-AzureADUser -ObjectID $email -AccountEnabled $false
+
 ##This section removes all licenses (use get-msolaccountsku to find out yours), and adds Exchange Enterprise license
 ##which is required for litigation hold.  You may not need that for your environment, so adjust accordingly.
 
@@ -118,7 +121,7 @@ Get-ADUser $logonname | Move-ADObject -TargetPath 'OU=Disabled user accounts,DC=
 Disable-ADAccount -identity $logonname
 
 Set-ADUser -Identity $logonname -Replace @{msExchHideFromAddressLists = $True }
-
+Set-ADUser -Identity $logonname -Manager $Null
 Get-ADUser $logonname -Properties MemberOf | Select-Object -Expand MemberOf | ForEach-Object { Remove-ADGroupMember $_ -member $logonname -Confirm:$False }
 $datestamp = Get-Date -Format g
 $initials = Read-host "Enter your Initials for the lock out stamp"
@@ -128,6 +131,6 @@ $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If 
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 Set-MailboxAutoReplyConfiguration -Identity $EmailAddress -AutoReplyState Enabled -InternalMessage $internalMsg -ExternalMessage $externalMsg
 
-#Start-SyncAD
+Start-SyncAD
 
 Get-PSSession | Remove-PSSession
