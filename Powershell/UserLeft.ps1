@@ -51,6 +51,9 @@ function Start-CheckAllCreds {
 }
 Start-CheckAllCreds
 Enter-Office365
+Clear-Host
+Write-Host "CONNECT TO FORTIGATE OR RUN IN OFFICE (Requires local dc sync)" -ForegroundColor Green
+Write-Host "Sign in with your 365 account" -ForegroundColor Green
 Connect-AzureAd
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
 Do {
@@ -108,7 +111,7 @@ Set-MsolUserPassword -UserPrincipalName $EmailAddress -NewPassword $Password -Fo
 
 Write-host "Completed.  Password changed to $Password for account $EmailAddress"
 
-Set-AzureADUser -ObjectID $email -AccountEnabled $false
+Set-AzureADUser -ObjectID $EmailAddress -AccountEnabled $false
 
 ##This section removes all licenses (use get-msolaccountsku to find out yours), and adds Exchange Enterprise license
 ##which is required for litigation hold.  You may not need that for your environment, so adjust accordingly.
