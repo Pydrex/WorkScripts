@@ -382,11 +382,11 @@ if ($Usertype -ieq 'normal') {
     #LICENSE USER ACCOUNT
 
     Set-MsolUser -UserPrincipalName $email -UsageLocation GB
-    Set-MsolUserLicense -UserPrincipalName $email -AddLicenses reseller-account:SPE_E3
-    $ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
-    $AccountSkuId = "reseller-account:SPE_E3"
-    $LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
-    Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
+    Set-MsolUserLicense -UserPrincipalName $email -AddLicenses "reseller-account:SPE_E3"
+    #$ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
+    #$AccountSkuId = "reseller-account:SPE_E3"
+    #$LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
+    #Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
 
     #Add SIP for skype #ADDED 25/09/2019
     foreach ($user in (Get-ADUser -Identity $logonname -Properties mail, ProxyAddresses, UserPrincipalName)) {
