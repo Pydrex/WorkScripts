@@ -48,10 +48,11 @@ do {
       Write-Host "3:  Press '3' for the user left procedure." 
       Write-Host "4:  Press '4' to sync all AD Controllers."
       Write-Host "5:  Press '5' to Unlock AD Accounts and sync"
-      Write-Host "6:  Press '6' to access PaperCUT Menu"
-      Write-Host "7:  Press '7' to update the phone list"
-      Write-Host "8:  Press '8' to delete ADConnect sync"
-      Write-Host "9:  Press '9' to reset someones password expiry timer"
+      Write-Host "6:  Press '6' to add a user to RDS"
+      Write-Host "7:  Press '7' to access PaperCUT Menu"
+      Write-Host "8:  Press '8' to update the phone list"
+      Write-Host "9:  Press '9' to delete ADConnect sync"
+      Write-Host "10: Press '10' to reset someones password expiry timer"
       Write-Host "Q:  Press 'Q' to quit." 
      $input = Read-Host "Please make a selection" 
      switch ($input) { 
@@ -77,15 +78,19 @@ do {
                Start-UnlockedADAccounts 
           } '6' { 
                Clear-Host
-               Start-PaperCutIDCheck
+               'Launching RDS Enable'
+               Start-EnableRDS
           } '7' { 
+               Clear-Host
+               Start-PaperCutIDCheck
+          } '8' { 
                Clear-Host
                'Updating phone list'
                Start-UpdatePhoneList
-          } '8' { 
+          } '9' { 
                Clear-Host
                Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
-          } '9' { 
+          } '10' { 
                Clear-Host
                Start-PWDReset
           } 'U' { 

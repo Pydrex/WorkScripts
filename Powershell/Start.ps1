@@ -34,7 +34,6 @@ function Start-CheckAllCreds {
     if (!$Global:365AdminUsername -OR !$Global:365AdminPassword) { Start-UpdateCreds }
     $Global:365Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $Global:365AdminUsername, $Global:365AdminPassword
     Write-Host "Passed 365 Account Cred check" -ForegroundColor Green
-
     #SRV Account Check
     if (Test-path -Path ".\creds\$Global:currentUser-SRVAdminName.txt") { $Global:SRVAdminUsername = Get-Content ".\creds\$Global:currentUser-SRVAdminName.txt" }
     if (!$Global:SRVAdminUsername) { Write-Host "MISSING SAVED SRV ADMIN NAME, QUEUING JOB" -ForegroundColor Red }

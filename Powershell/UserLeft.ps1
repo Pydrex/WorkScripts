@@ -55,6 +55,7 @@ Clear-Host
 Write-Host "CONNECT TO FORTIGATE OR RUN IN OFFICE (Requires local dc sync)" -ForegroundColor Green
 Write-Host "Sign in with your 365 account" -ForegroundColor Green
 Connect-AzureAd
+Do {
 $Password = ([char[]]([char]33..[char]95) + ([char[]]([char]97..[char]126)) + 0..9 | Sort-Object { Get-Random })[0..8] -join ''
 Do {
     if ($Password) {
@@ -134,6 +135,15 @@ $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If 
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 Set-MailboxAutoReplyConfiguration -Identity $EmailAddress -AutoReplyState Enabled -InternalMessage $internalMsg -ExternalMessage $externalMsg
 
-Start-SyncAD
+$Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
+if ($Completed -ieq 'y') {
+    Start-SyncAD
+    Get-PSSession | Remove-PSSession
+    $done = $true
+}
+
+} while ($done -ne $true)
+
+$done = $Null;
 
 Get-PSSession | Remove-PSSession

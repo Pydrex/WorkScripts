@@ -61,6 +61,20 @@ Import-PSSession $OnPrem | Out-Null
 Write-Host "Done..."
 Clear-Host
 
+if (Get-Module -ListAvailable -Name ActiveDirectory) {
+    Write-Host "Active Directory Imported"
+}
+else { 
+    Import-Module ActiveDirectory
+}
+
+if (Get-Module -ListAvailable -Name MSOnline) {
+    Write-Host "MSOnline Imported"
+}
+else { 
+    Import-Module MSOnline
+}
+do {
 function Show-Menu { 
     param ( 
         [string]$Title = 'What type of account is this?' 
@@ -358,26 +372,28 @@ if ($Proceed -ieq 'y') {
         Write-Host
     }
 }
+
 Start-SyncAD
 
-if ($Usertype -ieq 'normal') { 
-    Start-Sleep -s 15
-    Clear-Host
-    Write-Host "Sleeping until sync completed 20 minutes remaining"
-    Start-Sleep -s 300
-    Write-Host "Sleeping - 15 minutes remaining"
-    Start-Sleep -s 300
-    Write-Host "Sleeping - 10 minutes remaining"
-    Start-Sleep -s 300
-    Write-Host "Sleeping - 5 minutes remaining"
-    Start-Sleep -s 300
-    Clear-Host
+Start-Sleep -s 15
+Clear-Host
+Write-Host "Sleeping until sync completed 20 minutes remaining"
+Start-Sleep -s 300
+Write-Host "Sleeping - 15 minutes remaining"
+Start-Sleep -s 300
+Write-Host "Sleeping - 10 minutes remaining"
+Start-Sleep -s 300
+Write-Host "Sleeping - 5 minutes remaining"
+Start-Sleep -s 300
+Clear-Host
 
-    Write-Host "Login into the cloud to see if the user exists!"
-    Import-Module MSOnline
-    Connect-MsolService -Credential $Global:365Cred
-    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
-    Import-PSSession $Session -AllowClobber
+Write-Host "Login into the cloud to see if the user exists!"
+Import-Module MSOnline
+Connect-MsolService -Credential $Global:365Cred
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+Import-PSSession $Session -AllowClobber
+
+if ($Usertype -ieq 'normal') { 
 
     #LICENSE USER ACCOUNT
 
@@ -407,7 +423,16 @@ Set-Mailbox -Identity $email -MessageCopyForSendOnBehalfEnabled $True
 #Set Perms for Calendars
 $cal = $email + ":\Calendar"
 Set-MailboxFolderPermission $cal -User Default -AccessRights Reviewer
+Write-host "All done, check the Portal to make sure the user is setup."
 
+$Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
+if ($Completed -ieq 'y') {
+    Start-SyncAD
+    Get-PSSession | Remove-PSSession
+    $done = $true
+}
 
+} while ($done -ne $true)
+
+$done = $Null;
 Get-PSSession | Remove-PSSession
-Write-host "All done, check the Portal to make sure the user is setup, Goodbye."

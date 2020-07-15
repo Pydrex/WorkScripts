@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 2.1" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 2.2" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 08/06/2020 - 12:53" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 15/07/2020 - 11:52" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -58,8 +58,10 @@ $Global:currentUser = $env:UserName
 
 function Start-UnlockedADAccounts {
     Import-Module ActiveDirectory
-    $UnlockedUsers = (Search-ADAccount -LockedOut | Unlock-ADAccount)
-    if($UnlockedUsers) {Write-Host '$UnlockedUsers'; Start-SyncAD} else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
+    $Search = (Search-ADAccount -LockedOut)
+    $LockedUsers = $null
+    $LockedUsers = Get-ADUser $Search | Select-Object -ExpandProperty SamAccountName
+    if($LockedUsers) {Write-Host "Unlocking User(s): $LockedUsers"; Start-SyncAD;} else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
 
 }
 
@@ -324,6 +326,26 @@ function Set-MfaState {
                      -StrongAuthenticationRequirements $Requirements
     }
 }
+
+function Start-EnableRDS {
+    Enter-Office365
+    Clear-Host
+    $email = $null
+    $email = Read-Host "Whos email address do you want to enable Remote Desktop and MFA for??"
+    $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
+    Add-ADGroupMember -Identity "WVDUsers" -Members $sam
+    Set-MfaState -UserPrincipalName $email -State Enforced
+    Set-CASMailbox -Identity $email -OWAEnabled $true
+   
+    $mfaenabled = Get-MsolUser -UserPrincipalName $email | select UserPrincipalName, `
+        @{Name = 'MFAEnabled'; Expression={if ($_.StrongAuthenticationRequirements) {Write-Output $true} else {Write-Output $false}}}
+        Write-Output $mfaenabled | Sort-Object MFAEnabled
+    
+    $owaenabled = Get-CASMailbox -Identity $email | Select-Object Identity, `
+        @{Name = 'OWAisEnabled'; Expression={if ($_.OWAEnabled) {Write-Output $true} else {Write-Output $false}}}
+        Write-Output $owaenabled | Sort-Object OWAisEnabled
+    }
+
 function Start-EnableOWA {
     Enter-Office365
     Clear-Host
