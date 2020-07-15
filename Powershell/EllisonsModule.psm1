@@ -334,6 +334,7 @@ function Start-EnableRDS {
     $email = Read-Host "Whos email address do you want to enable Remote Desktop and MFA for??"
     $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
     Add-ADGroupMember -Identity "WVDUsers" -Members $sam
+    Add-ADGroupMember -Identity "MFA Users" -Members $sam
     Set-MfaState -UserPrincipalName $email -State Enforced
     Set-CASMailbox -Identity $email -OWAEnabled $true
    
