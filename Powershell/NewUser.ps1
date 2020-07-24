@@ -427,7 +427,6 @@ Write-host "All done, check the Portal to make sure the user is setup."
 
 $Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
 if ($Completed -ieq 'y') {
-    Start-SyncAD
     Get-PSSession | Remove-PSSession
     $done = $true
 }

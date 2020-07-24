@@ -58,9 +58,9 @@ $Global:currentUser = $env:UserName
 
 function Start-UnlockedADAccounts {
     Import-Module ActiveDirectory
-    $Search = (Search-ADAccount -LockedOut)
+    $Search = (Search-ADAccount -lockedout | Select-Object Name, SamAccountName)
     $LockedUsers = $null
-    $LockedUsers = Get-ADUser $Search | Select-Object -ExpandProperty SamAccountName
+    if($search) {$LockedUsers = $Search | Select-Object -ExpandProperty SamAccountName}
     if($LockedUsers) {Write-Host "Unlocking User(s): $LockedUsers"; Start-SyncAD;} else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
 
 }
