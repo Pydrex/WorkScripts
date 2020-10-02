@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 2.2" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Created and Maintaned by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 15/07/2020 - 11:52" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 2.3" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 02/10/2020 - 09:54" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -134,6 +134,8 @@ function Start-365Menu {
         Write-Host "6:  Press '6' to select Disable Out Of Office."
         Write-Host "7:  Press '7' to enable MFA and OWA."
         Write-Host "8:  Press '8' to disable OWA."
+        Write-Host "9:  Press '9' to add to Dementia Friends signature."
+        Write-Host "10: Press '10' to remove  Dementia Friends signature."
         Write-Host "R:  Press 'R' to return to the previous menu." 
         $input = Read-Host "Please make a selection" 
         switch ($input) { 
@@ -169,7 +171,15 @@ function Start-365Menu {
                     Clear-Host 
                     'You selected Disable OWA'
                     Start-DisableOWA 
-                } 'R' { 
+             } '9' { 
+                Clear-Host 
+                'You selected add to Dementia Friends'
+                addToDF  
+             } '10' { 
+                Clear-Host 
+                'You selected remove from Dementia Friends'
+                removeFromDF  
+             } 'R' { 
                   return 
              } 
         }
@@ -251,6 +261,17 @@ function Start-Egg {
     & './Snake.ps1'
 }
 
+function addToDF {
+    $USERNAME = Read-Host "Enter the USERNAME of who you want to have the DF signature"
+    Get-ADUser $USERNAME
+    Set-ADUser -Identity $USERNAME -Replace @{extensionAttribute10="DF"}
+}
+
+function removeFromDF {
+    $USERNAME = Read-Host "Enter the USERNAME of who you want to remove the DF signature from"
+    Get-ADUser $USERNAME
+    Set-ADUser -Identity $USERNAME -Clear "extensionAttribute10"
+}
 function Start-UpdatePhoneList{
     & './UpdatePhoneLists.ps1'
     
