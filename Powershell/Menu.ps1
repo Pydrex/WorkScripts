@@ -51,7 +51,7 @@ do {
       Write-Host "6:  Press '6' to add a user to RDS"
       Write-Host "7:  Press '7' to access PaperCUT Menu"
       Write-Host "8:  Press '8' to update the phone list"
-      Write-Host "9:  Press '9' to delete ADConnect sync"
+      Write-Host "9:  Press '9' to update ADConnect sync"
       Write-Host "10: Press '10' to reset someones password expiry timer"
       Write-Host "Q:  Press 'Q' to quit." 
      $input = Read-Host "Please make a selection" 

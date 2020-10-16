@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 2.3" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 2.4" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 02/10/2020 - 09:54" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 16/10/2020 - 09:55" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -409,21 +409,17 @@ function Start-DisableOWA {
 }
     
 function Start-SyncAD {
-    Get-PSSession | Remove-PSSession
-    $DomainControllers = Get-ADDomainController -Filter *
-    ForEach ($DC in $DomainControllers.Name) {
-        Write-Host "Processing for "$DC -ForegroundColor Green
-        If ($Mode -eq "ExtraSuper") {
-            REPADMIN /kcc $DC
-            REPADMIN /syncall /A /e /q $DC
-        }
-        Else {
-            REPADMIN /syncall $DC "DC=Ellisonslegal,DC=com" /d /e /q
-        }
+    if (!$Global:LocalAdminUsername -OR !$Global:LocalAdminPassword) { Start-AdministratorUpdate }
+    $AdminName = "Administrator"
+    $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt" | ConvertTo-SecureString
+    $Global:AdminCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Global:LocalAdminPassword
+    $s = New-PSSession -computerName ez-az-dc01 -Credential $Global:AdminCred
+    $Sess = Enter-PSSession $s
+    Invoke-Command -ComputerName EZ-AZ-DC01 -Credential $Global:AdminCred -Scriptblock {Start-ScheduledTask -TaskName "SyncAll"}
+    Exit-PSSession
+    Write-Host "SyncAll started on DC01, wait 1 minute for sync"
 }
 
-Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
-}
 function Start-DisableOutOfOffice {
     Enter-Office365
     Clear-Host
