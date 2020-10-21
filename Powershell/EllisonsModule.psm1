@@ -3,7 +3,7 @@
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Version 2.4" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 16/10/2020 - 09:55" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 21/10/2020 - 10:18" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -58,11 +58,10 @@ $Global:currentUser = $env:UserName
 
 function Start-UnlockedADAccounts {
     Import-Module ActiveDirectory
-    $Search = (Search-ADAccount -lockedout | Select-Object Name, SamAccountName)
+    $Search = (Search-ADAccount -lockedout | Select-Object SamAccountName)
     $LockedUsers = $null
     if($search) {$LockedUsers = $Search | Select-Object -ExpandProperty SamAccountName}
-    if($LockedUsers) {Write-Host "Unlocking User(s): $LockedUsers"; Start-SyncAD;} else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
-
+    if($LockedUsers) {Write-Host "Unlocking User(s): $LockedUsers"; Start-SyncAD; $LockedUsers | Unlock-AdAccount } else {Write-Host "Found No Locked Out Accounts, Returning to menu" -ForegroundColor Green}
 }
 
 function Start-PWDReset {
