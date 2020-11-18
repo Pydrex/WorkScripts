@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 2.4" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 2.5" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 21/10/2020 - 10:18" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 18/11/2020 - 09:28" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -284,7 +284,11 @@ function Start-FullAccess {
     $Requestee = Read-Host "Who do you want to have access?"
     Write-Host
     $Target = Read-Host "Whos Inbox do they need access to?"
-    Add-MailboxPermission -Identity $Target -User $Requestee -AccessRights FullAccess -InheritanceType All -Automapping:$true
+    $AutoMap = Read-host "Do you want this to AutoMap to Outlook? (If n they will have to file > open > other user) (y/n)"
+    if ($AutoMap -ieq 'y') {
+    Add-MailboxPermission -Identity $Target -User $Requestee -AccessRights FullAccess -InheritanceType All -Automapping:$true} else {
+    Add-MailboxPermission -Identity $Target -User $Requestee -AccessRights FullAccess -InheritanceType All -Automapping:$false
+    }
     Write-Host "Done, This might take 20 minutes."
 }
 function Start-RemoveAccess {
