@@ -130,10 +130,14 @@ Get-ADUser $logonname -Properties MemberOf | Select-Object -Expand MemberOf | Fo
 $datestamp = Get-Date -Format g
 $initials = Read-host "Enter your Initials for the lock out stamp"
 Get-aduser $logonname -Properties Description | ForEach-Object { Set-ADUser $_ -Description "$($_.Description) Disabled by $initials - $datestamp" }
+
+$MessageOn = Read-host "Type y if you wish to add an Out Of Office message, n to skip it(y/n)"
+if ($MessageOn -ieq 'y') {
 $contactemail = read-host 'Enter the full email of the person who should be in the Out Of Office reply example (Contact HoD for email)'
 $internalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 $externalMsg = "Please note I am no longer working with Ellisons Solicitors. If you have questions please contact $contactemail and they will get back to you as soon as possible."
 Set-MailboxAutoReplyConfiguration -Identity $EmailAddress -AutoReplyState Enabled -InternalMessage $internalMsg -ExternalMessage $externalMsg
+}
 
 $Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
 if ($Completed -ieq 'y') {
