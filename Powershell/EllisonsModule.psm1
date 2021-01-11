@@ -1,28 +1,28 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 2.5" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 3" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 18/11/2020 - 09:28" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 11/01/2021 - 15:54" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
 #######################################################################
 Set-Location -Path $PSScriptRoot
 $AzureAD = "AzureAD"
-$AzureADPreview = "AzureADPreview"
 
 $Installedmodules = Get-InstalledModule
 
-if ($Installedmodules.name -contains $AzureAD -or $AzureADPreview) {
+if ($Installedmodules.name -contains $AzureAD) {
 
+    Update-Module $AzureAD -Confirm:$False
     "$AzureAD is installed "
 
 }
 
 else {
 
-    Install-Module AzureAD
+    Install-Module AzureAD -Confirm:$False -Force -AllowClobber
 
     "$AzureAD now installed"
 
@@ -39,14 +39,36 @@ $Installedmodules = Get-InstalledModule
 if ($Installedmodules.name -contains $MSOnline) {
 
     "$MSOnline is installed "
+    Update-module MSOnline -Confirm:$False
 
 }
 
 else {
 
-    Install-Module MSOnline
+    Install-Module MSOnline -Confirm:$False -Force
 
     "$MSOnline now installed"
+
+}
+
+##
+
+$ExchangeOnlineManagement = "ExchangeOnlineManagement"
+
+$Installedmodules = Get-InstalledModule
+
+if ($Installedmodules.name -contains $ExchangeOnlineManagement) {
+
+    Update-Module -Name ExchangeOnlineManagement -Confirm:$False
+    "$ExchangeOnlineManagement is installed "
+
+}
+
+else {
+
+    Install-Module -Name ExchangeOnlineManagement -Confirm:$False -Force
+
+    "$ExchangeOnlineManagement now installed"
 
 }
 
@@ -103,9 +125,11 @@ Function Enter-Office365 {
         Get-PSSession | Remove-PSSession
         Import-Module ActiveDirectory
         Import-Module MSOnline
+        Import-Module ExchangeOnlineManagement
         Set-CredsUp
         Connect-MsolService -Credential $Global:365Cred
-        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+        $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername
+        #$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     }
     if ($Session) {Import-PSSession $Session -AllowClobber}
 }
@@ -278,7 +302,6 @@ function Start-UpdatePhoneList{
 
 function Start-FullAccess {
     Enter-Office365
-    Clear-Host
     $Requestee = $null
     $Target = $null
     $Requestee = Read-Host "Who do you want to have access?"

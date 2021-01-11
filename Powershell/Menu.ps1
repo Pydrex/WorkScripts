@@ -1,6 +1,6 @@
 Set-Location -Path $PSScriptRoot
 Import-Module ".\EllisonsModule.psm1" -Force
-
+Import-Module -Name ExchangeOnlineManagement
 function Start-CheckAllCreds {
      #OnPrem Local Administrator account Check
      if (Test-path -Path ".\creds\$Global:currentUser-AdministratorName.txt") { $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt" }
@@ -105,7 +105,8 @@ do {
            
           } 'egg' { 
                Clear-Host
-               Start-Egg
+               #Start-Egg
+               Start-Check
            
           } 'q' { 
                'Thank you, come again'

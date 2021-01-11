@@ -17,7 +17,8 @@ Function Connect365 {
      $Pass = Get-Content "C:\PowerShell\O365Account.txt" | ConvertTo-SecureString
      $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
      Connect-MsolService -Credential $Cred
-     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
+     $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
+     #$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
      Import-PSSession $Session -AllowClobber 
 
 }

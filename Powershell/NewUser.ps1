@@ -390,7 +390,8 @@ Clear-Host
 Write-Host "Login into the cloud to see if the user exists!"
 Import-Module MSOnline
 Connect-MsolService -Credential $Global:365Cred
-$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
+$Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
+#$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
 Import-PSSession $Session -AllowClobber
 
 if ($Usertype -ieq 'normal') { 

@@ -14,7 +14,8 @@ Function Connect365 {
      $Pass = Get-Content "C:\PowerShell\O365Account.txt" | ConvertTo-SecureString
      $Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Pass
      Connect-MsolService -Credential $Cred
-     $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
+     $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
+     #$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $cred -Authentication Basic -AllowRedirection
      Import-PSSession $Session -AllowClobber 
 
 }
@@ -37,7 +38,13 @@ If (Test-Path $CSVFileName) {
             $email = $usr.EmailAddress
             $message = "Thank you for your email. In light the COVID19 pandemic we are following government guidelines on social distancing and therefore unable to attend our offices. If your query is urgent, please contact: $contact"
             Set-MailboxAutoReplyConfiguration $usr.EmailAddress -AutoReplyState enabled -ExternalAudience all -InternalMessage $message -ExternalMessage $message -ErrorAction STOP
-            Set-Mailbox -Identity $email -DeliverToMailboxAndForward $true -ForwardingAddress $contact
+            Set-Mailbox -Identity $email -Type Regular
+            Set-MsolUser -UserPrincipalName $email -UsageLocation GB
+            Set-MsolUserLicense -UserPrincipalName $email -AddLicenses reseller-account:SPE_E3
+            $ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
+            $AccountSkuId = "reseller-account:SPE_E3"
+            $LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
+            Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
             "$($usr.EmailAddress) was set successfully." | Out-File $logfile -Append
         }
         catch {
