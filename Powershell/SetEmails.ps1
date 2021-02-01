@@ -42,7 +42,7 @@ If (Test-Path $CSVFileName) {
             $SMTP3 = $usr.SMTP3
 
             $filtersam = Get-ADUser -Filter { emailaddress -eq $Ellisons } -Properties SamAccountName
-            $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+            $Server = "EZ-AZ-DC01.Ellisonslegal.com"
             #$sam = $filtersam | Select-Object -Property SamAccountName
             $identitysam = (Get-ADUser -Identity $filtersam -Properties mail, ProxyAddresses, UserPrincipalName)
             

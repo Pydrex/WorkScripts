@@ -3,6 +3,7 @@ Set-Location -Path $PSScriptRoot
 $Global:currentUser = $env:UserName
 Import-Module ".\EllisonsModule.psm1" -Force
 
+
 Write-Host "Loading checks...."
 Write-Host "Informational: Script has been run as user: $Global:currentUser" -ForegroundColor Green
 

@@ -48,7 +48,7 @@ function Start-CheckAllCreds {
 Start-CheckAllCreds
 Clear-Host
 
-$Server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+$Server = "EZ-AZ-DC01.Ellisonslegal.com"
 
 if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
         Import-Module ActiveDirectory
@@ -388,6 +388,7 @@ Start-Sleep -s 300
 Clear-Host
 
 Write-Host "Login into the cloud to see if the user exists!"
+
 Import-Module MSOnline
 Connect-MsolService -Credential $Global:365Cred
 $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false

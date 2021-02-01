@@ -236,7 +236,7 @@ function Start-PaperCutIDCheck {
                       $report | Format-Table | Out-String|% {Write-Host $_ -BackgroundColor:Yellow -ForegroundColor:Black}
                   } else {
                       $sam = Get-ADUser -Filter { emailaddress -eq $email } -Properties SamAccountName
-                      $server = Get-ADDomain | Select-Object -ExpandProperty PDCEmulator
+                      $Server = "EZ-AZ-DC01.Ellisonslegal.com"
                       Get-ADUser $sam -Server $Server | Set-ADUser -EmployeeID $EmployeeID
                       Write-Host "Set PapercutID for $sam" -ForegroundColor:Green
                   }
