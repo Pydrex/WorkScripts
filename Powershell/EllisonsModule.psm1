@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 3" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 3.1" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 11/01/2021 - 15:54" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 01/02/2021 - 12:29" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -15,7 +15,7 @@ $Installedmodules = Get-InstalledModule
 
 if ($Installedmodules.name -contains $AzureAD) {
 
-    Update-Module $AzureAD -Confirm:$False
+    #Update-Module $AzureAD -Confirm:$False
     "$AzureAD is installed "
 
 }
@@ -39,7 +39,7 @@ $Installedmodules = Get-InstalledModule
 if ($Installedmodules.name -contains $MSOnline) {
 
     "$MSOnline is installed "
-    Update-module MSOnline -Confirm:$False
+    #Update-module MSOnline -Confirm:$False
 
 }
 
@@ -59,7 +59,7 @@ $Installedmodules = Get-InstalledModule
 
 if ($Installedmodules.name -contains $ExchangeOnlineManagement) {
 
-    Update-Module -Name ExchangeOnlineManagement -Confirm:$False
+    #Update-Module -Name ExchangeOnlineManagement -Confirm:$False
     "$ExchangeOnlineManagement is installed "
 
 }
