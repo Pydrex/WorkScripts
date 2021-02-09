@@ -414,6 +414,7 @@ if ($Usertype -ieq 'normal') {
 
     #Setup OneDrive
     #[System.Windows.MessageBox]::Show('Please sign in to the below using your Domain Admin account to provison the OneDrive')
+    Import-Module Microsoft.Online.SharePoint.PowerShell
     Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com
     Request-SPOPersonalSite -UserEmails $email -NoWait
 }

@@ -72,6 +72,23 @@ else {
 
 }
 
+$SPOService = "Microsoft.Online.SharePoint.PowerShell"
+
+if ($Installedmodules.name -contains $SPOService) {
+
+    #Update-Module -Name ExchangeOnlineManagement -Confirm:$False
+    "$SPOService is installed "
+
+}
+
+else {
+
+    Install-Module -Name Microsoft.Online.SharePoint.PowerShell -Confirm:$False -Force
+
+    "$SPOService now installed, You may need to download the MSi from the site"
+
+}
+
 #requires -module ActiveDirectory
 #requires -module MSOnline
 
