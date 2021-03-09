@@ -53,7 +53,7 @@ $Server = "EZ-AZ-DC01.Ellisonslegal.com"
 if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
         Import-Module ActiveDirectory
         Write-Output "Importing OnPrem Exchange Module"
-        $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-exchb.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
+        $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-ex01.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
         Import-Module MSOnline
  }
 Import-PSSession $OnPrem | Out-Null
