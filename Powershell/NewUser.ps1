@@ -378,13 +378,15 @@ Start-SyncAD
 Start-Sleep -s 15
 Clear-Host
 Write-Host "Sleeping until sync completed 10 minutes remaining"
-Start-Sleep -s 600
+Start-Sleep -s 300
+Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
+Start-Sleep -s 300
 Clear-Host
 
 Write-Host "Login into the cloud to see if the user exists!"
 
 
-Get-PSSession | Remove-PSSession
+#Get-PSSession | Remove-PSSession
 Import-Module MSOnline
 Connect-MsolService -Credential $Global:365Cred
 Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
