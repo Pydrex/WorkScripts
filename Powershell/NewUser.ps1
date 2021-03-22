@@ -377,23 +377,19 @@ Start-SyncAD
 
 Start-Sleep -s 15
 Clear-Host
-Write-Host "Sleeping until sync completed 20 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 15 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 10 minutes remaining"
-Start-Sleep -s 300
-Write-Host "Sleeping - 5 minutes remaining"
-Start-Sleep -s 300
+Write-Host "Sleeping until sync completed 10 minutes remaining"
+Start-Sleep -s 600
 Clear-Host
 
 Write-Host "Login into the cloud to see if the user exists!"
 
+
+Get-PSSession | Remove-PSSession
 Import-Module MSOnline
 Connect-MsolService -Credential $Global:365Cred
-$Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
+Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
 #$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
-Import-PSSession $Session -AllowClobber
+##Import-PSSession $Session -AllowClobber
 
 if ($Usertype -ieq 'normal') { 
 
