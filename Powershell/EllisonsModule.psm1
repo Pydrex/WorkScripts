@@ -498,3 +498,13 @@ function Start-AdministratorUpdate {
     $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt"
     $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
 }
+
+function Start-EXCHAdministratorUpdate {
+    Write-Host "Enter the ELLNET\EXCHAdmin username and password (Same as Domain)" -ForegroundColor Green
+    $EXCHAdminUpdatecredential = Get-Credential
+    $EXCHAdminLocal = "EXCHAdmin" | Out-File ".\creds\$Global:currentUser-EXCHAdminName.txt"
+    $EXCHAdminUpdatecredential.Password | ConvertFrom-SecureString | Out-File ".\creds\$Global:currentUser-EXCHAdminPassword.txt"
+
+    $Global:EXCHAdminPassword = Get-Content ".\creds\$Global:currentUser-EXCHAdminPassword.txt"
+    $Global:EXCHAdminUsername = Get-Content ".\creds\$Global:currentUser-EXCHAdminName.txt"
+}

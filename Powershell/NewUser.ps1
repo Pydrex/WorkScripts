@@ -44,6 +44,18 @@ function Start-CheckAllCreds {
     $Global:SRVCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $Global:SRVAdminUsername, $Global:SRVAdminPassword
     Write-Host "Passed SRV Account Cred check" -ForegroundColor Green
     Write-Host "Initialising" -BackgroundColor Gray
+
+    #EXCHANGE Local Administrator account Check
+    if (Test-path -Path ".\creds\$Global:currentUser-EXCHAdminName.txt") { $Global:EXCHAdminUsername = Get-Content ".\creds\$Global:currentUser-EXCHAdminName.txt" }
+    if (!$Global:EXCHAdminUsername) { Write-Host "MISSING SAVED Administrator NAME, QUEUING JOB" -ForegroundColor Red }
+    if (Test-path -Path ".\creds\$Global:currentUser-EXCHAdminPassword.txt" ) { $Global:EXCHAdminPassword = Get-Content ".\creds\$Global:currentUser-EXCHAdminPassword.txt" | ConvertTo-SecureString }
+    if (!$Global:EXCHAdminPassword) { Write-Host "MISSING SAVED Administrator PASSWORD, QUEUING JOB" -ForegroundColor Red }
+    #Lets run the script to update the passwords
+    if (!$Global:EXCHAdminUsername -OR !$Global:EXCHAdminPassword) { Start-EXCHAdministratorUpdate }
+    $AdminName = "EXCHAdmin"
+    $Global:EXCHAdminPassword = Get-Content ".\creds\$Global:currentUser-EXCHAdminPassword.txt" | ConvertTo-SecureString
+    $Global:EXCHAdminUpdatecredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Global:EXCHAdminPassword
+
 }
 Start-CheckAllCreds
 Clear-Host
@@ -377,10 +389,11 @@ Start-SyncAD
 
 Start-Sleep -s 15
 Clear-Host
-Write-Host "Sleeping until sync completed 10 minutes remaining"
-Start-Sleep -s 300
+Write-Host "Sleeping until sync completed 20 minutes remaining"
+Start-Sleep -s 600
 Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
-Start-Sleep -s 300
+Write-Host "Sleeping until sync completed 10 minutes remaining"
+Start-Sleep -s 600
 Clear-Host
 
 Write-Host "Login into the cloud to see if the user exists!"

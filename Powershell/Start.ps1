@@ -35,6 +35,7 @@ function Start-CheckAllCreds {
     if (!$Global:365AdminUsername -OR !$Global:365AdminPassword) { Start-UpdateCreds }
     $Global:365Cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $Global:365AdminUsername, $Global:365AdminPassword
     Write-Host "Passed 365 Account Cred check" -ForegroundColor Green
+
     #SRV Account Check
     if (Test-path -Path ".\creds\$Global:currentUser-SRVAdminName.txt") { $Global:SRVAdminUsername = Get-Content ".\creds\$Global:currentUser-SRVAdminName.txt" }
     if (!$Global:SRVAdminUsername) { Write-Host "MISSING SAVED SRV ADMIN NAME, QUEUING JOB" -ForegroundColor Red }
@@ -45,6 +46,18 @@ function Start-CheckAllCreds {
     $Global:SRVCred = new-object -typename System.Management.Automation.PSCredential -argumentlist $Global:SRVAdminUsername, $Global:SRVAdminPassword
     Write-Host "Passed SRV Account Cred check" -ForegroundColor Green
     Write-Host "Initialising" -BackgroundColor Gray
+
+    #EXCHANGE Local Administrator account Check
+    if (Test-path -Path ".\creds\$Global:currentUser-EXCHAdminName.txt") { $Global:EXCHAdminUsername = Get-Content ".\creds\$Global:currentUser-EXCHAdminName.txt" }
+    if (!$Global:EXCHAdminUsername) { Write-Host "MISSING SAVED Administrator NAME, QUEUING JOB" -ForegroundColor Red }
+    if (Test-path -Path ".\creds\$Global:currentUser-EXCHAdminPassword.txt" ) { $Global:EXCHAdminPassword = Get-Content ".\creds\$Global:currentUser-EXCHAdminPassword.txt" | ConvertTo-SecureString }
+    if (!$Global:EXCHAdminPassword) { Write-Host "MISSING SAVED Administrator PASSWORD, QUEUING JOB" -ForegroundColor Red }
+    #Lets run the script to update the passwords
+    if (!$Global:EXCHAdminUsername -OR !$Global:EXCHAdminPassword) { Start-EXCHAdministratorUpdate }
+    $AdminName = "EXCHAdmin"
+    $Global:EXCHAdminPassword = Get-Content ".\creds\$Global:currentUser-EXCHAdminPassword.txt" | ConvertTo-SecureString
+    $Global:EXCHAdminUpdatecredential = new-object -typename System.Management.Automation.PSCredential -argumentlist $AdminName, $Global:EXCHAdminPassword
+
 }
 Start-CheckAllCreds
 Clear-Host
@@ -52,7 +65,8 @@ do {
     Write-Host "1: Press '1' for General Menu." 
     Write-Host "2: Press '2' for Updating Stored SRV Admin Creds."
     Write-Host "3: Press '3' for Updated Stored Office 365 Creds."
-    Write-Host "4: Press '4' to add the local 'Administrator' Creds" 
+    Write-Host "4: Press '4' to add the local 'Administrator' Creds"
+    Write-Host "5: Press '5' to add the local Exchange admin Creds" 
     $input = Read-Host "Please make a selection" 
     switch ($input) { 
          '1' { 
@@ -64,7 +78,9 @@ do {
                 Start-UpdateCreds
         }  '4' { 
                 Start-AdministratorUpdate
-        }
+        }  '5' { 
+                Start-EXCHAdministratorUpdate
+    }
     } 
     pause
 } 
