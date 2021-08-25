@@ -407,7 +407,7 @@ if ($Proceed -ieq 'y') {
     
     if ($MemberOf) {
         $CopyName = $CUser.Name 
-        $ProceedMemberOf = Read-host "Do you want to copy AD User Groups from $CopyName other user to $fullname ?"
+        $ProceedMemberOf = Read-host "Do you want to copy AD User Groups from $CopyName to $fullname (y/n)?"
         if ($ProceedMemberOf -ieq 'y') {
         
         Write-Host "Adding Membership Groups to the new user account."
