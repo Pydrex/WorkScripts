@@ -1,9 +1,9 @@
 #Module
 
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Version 3.1" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Version 4" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 01/02/2021 - 12:29" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 25/08/2021 - 11:30" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
@@ -142,10 +142,13 @@ Function Enter-Office365 {
         Get-PSSession | Remove-PSSession
         Import-Module ActiveDirectory
         Import-Module MSOnline
-        Import-Module ExchangeOnlineManagement
+        Import-Module Microsoft.Online.SharePoint.PowerShell
+        #Import-Module ExchangeOnlineManagement
+        Clear-Host
         Set-CredsUp
         Connect-MsolService -Credential $Global:365Cred
-        $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername
+        Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com -Credential $Global:365Cred
+        $Session = Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -Credential $Global:365Cred
         #$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
     }
     if ($Session) {Import-PSSession $Session -AllowClobber}
@@ -159,6 +162,15 @@ function Set-CredsUp {
     $Global:LocalAdminPassword = Get-Content ".\creds\$Global:currentUser-AdministratorPassword.txt"
     $Global:LocalAdminUsername = Get-Content ".\creds\$Global:currentUser-AdministratorName.txt"
 
+}
+
+function CopyUserGroups {
+    Write-host 'WARNING THIS WILL OVERWRITE ALL USER GROUPS OF THAT USER'
+    $CopyFROM = Read-Host "Enter the logon name of the user you wish to copy FROM!"
+    $CopyTO = Read-Host "Enter the logon name of the user you wish to copy TO!"
+    Get-ADUser -Identity $CopyFROM  -Properties memberof | Select-Object -ExpandProperty memberof | Add-ADGroupMember -Members $CopyTO | Write-Output $true
+    'Done'
+    
 }
 function Start-365Menu {
     do {
@@ -176,6 +188,8 @@ function Start-365Menu {
         Write-Host "8:  Press '8' to disable OWA."
         Write-Host "9:  Press '9' to add to Dementia Friends signature."
         Write-Host "10: Press '10' to remove  Dementia Friends signature."
+        Write-host "11: Press '11' to run New starter fix for calendar and send as permissions"
+        Write-host "12: Press '12' to copy AD Groups from one user to another"
         Write-Host "R:  Press 'R' to return to the previous menu." 
         $input = Read-Host "Please make a selection" 
         switch ($input) { 
@@ -218,7 +232,14 @@ function Start-365Menu {
              } '10' { 
                 Clear-Host 
                 'You selected remove from Dementia Friends'
-                removeFromDF  
+                removeFromDF
+             } '11' {
+                Clear-Host
+                'Running new starter fixes'
+                Start-NewStarterFix
+             } '12' {
+                Clear-Host
+                CopyUserGroups
              } 'R' { 
                   return 
              } 
@@ -297,6 +318,27 @@ function Start-NewUser {
     & './NewUser.ps1'
 }
 
+function Start-NewStarterFix {
+    Param
+    (
+         [Parameter(Mandatory=$false, Position=1)]
+         [string] $email
+    )
+    Enter-Office365
+
+    Clear-Host
+    if (!$email) {
+        $email = Read-Host "Please type in the users email address to turn off OWA and Set Calendar Defaults"
+    }
+    Write-Host 'I RAN'
+    
+    Set-CASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled $false -OWAEnabled $false
+    Set-Mailbox -Identity $email -MessageCopyForSentAsEnabled $True
+    Set-Mailbox -Identity $email -MessageCopyForSendOnBehalfEnabled $True
+    #Set Perms for Calendars
+    $cal = $email + ":\Calendar"
+    Set-MailboxFolderPermission $cal -User Default -AccessRights Reviewer
+}
 function Start-Egg {
     & './Snake.ps1'
 }

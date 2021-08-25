@@ -58,17 +58,10 @@ function Start-CheckAllCreds {
 
 }
 Start-CheckAllCreds
-Clear-Host
+#Clear-Host
 
 $Server = "EZ-AZ-DC01.Ellisonslegal.com"
-
-if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
-        Import-Module ActiveDirectory
-        Write-Output "Importing OnPrem Exchange Module"
-        $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-ex01.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
-        Import-Module MSOnline
- }
-Import-PSSession $OnPrem | Out-Null
+#$OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-ex01.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
 
 Write-Host "Done..."
 Clear-Host
@@ -86,6 +79,32 @@ if (Get-Module -ListAvailable -Name MSOnline) {
 else { 
     Import-Module MSOnline
 }
+#
+#if (!(Get-PSSession | Where { $_.ConfigurationName -eq "Microsoft.Exchange" })) { 
+#    $OnPrem = New-PSSession -Authentication Kerberos -ConfigurationName Microsoft.Exchange -ConnectionUri 'http://ez-az-ex01.ellisonslegal.com/Powershell' -Credential $Global:AdminCred
+#}
+#Import-PSSession $OnPrem | Out-Null
+
+# Connection URI to connect to OnPrem Exchange PowerShell Web Session
+$ConnectionURI = "http://ez-az-ex01.ellisonslegal.com/Powershell"
+
+# Get credentials for Exchange Online and Exchange OnPrem Admin account
+$OnPremcredential = $Global:AdminCred
+$O365credential = $Global:365Cred
+
+# Connect to Exchange Online V2
+Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername `
+                       -Prefix 'EO' `
+                       -Credential $O365credential 
+
+# Connect to Exchange OnPremises
+$Session = New-PSSession -ConfigurationName Microsoft.Exchange `
+                         -ConnectionUri $ConnectionURI `
+                         -Authentication Kerberos `
+                         -Credential $OnPremcredential
+Import-PSSession $Session -Prefix OP | Out-Null
+
+
 do {
 function Show-Menu { 
     param ( 
@@ -119,6 +138,7 @@ do {
 until ($input)
 
 Clear-Host
+
 Write-Host "Before we create the account"
 $CopyUser = Read-Host "Would you like to copy from another user? (y/n)"
 Write-Host
@@ -247,8 +267,9 @@ if ($CUser) {
     $Manager = $CUser.Manager
   
     #Getting Membership groups from copied user.
-    $MemberOf = (Get-ADUser -Identity $CUser -Properties MemberOf).MemberOf -replace '^CN=([^,]+),OU=.+$','$1'
+    #$MemberOf = (Get-ADUser -Identity $CUser -Properties MemberOf).MemberOf -replace '^CN=([^,]+),OU=.+$','$1'
     #$MemberOf = Get-ADPrincipalGroupMembership $CUser -Server $server | Where-Object { $_.Name -ine "Domain Users" }
+    $MemberOf = Get-ADUser -Identity $CUser -Properties memberof | Select-Object -ExpandProperty memberof 
 
     if (!$MemberOf) {
         Write-Host "FAILED TO GET GROUPS FROM USER - RESTART POWERSHELL AS ADMIN AND MAKE SURE ActiveDirectory is IMPORTED" -ForegroundColor:RED
@@ -325,12 +346,12 @@ Write-Host "Continuing will create the AD account and O365 Email." -ForegroundCo
 Write-Host
 $Proceed = $null
 $Proceed = Read-Host "Continue? (y/n)"
-  
+
 if ($Proceed -ieq 'y') {
-          
+    
     if ($Usertype -ieq 'normal') { 
         Write-Host "Creating the O365 mailbox and AD Account."
-        New-RemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server
+        New-OPRemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server
         Write-Host "Done..."
         Write-Host
         Write-Host
@@ -340,13 +361,20 @@ if ($Proceed -ieq 'y') {
         Write-Host "Adding Properties to the new user account."
         Get-ADUser $logonname -Server $Server | Set-ADUser -Server $Server -Description $Description -Office $Office -StreetAddress $StreetAddress -City $City -State $State -PostalCode $PostalCode -Country $Country -Title $Title -Department $Department -Company $Company -Manager $Manager -EmployeeID $EmployeeID -Fax $Fax -Homepage $Homepage -HomePhone $HomePhone -POBox $POBox -OfficePhone $OfficePhone
         Write-Host "Done..."
-        Write-Host
-        Write-Host
+        Write-Host "Adding Default Groups (for All Users + FollowMe)"
+        Add-ADGroupMember -Identity "All Users" -Members $logonname
+        Add-ADGroupMember -Identity "FollowMeUsers" -Members $logonname
+
+        #Add SIP for skype #ADDED 25/09/2019
+        foreach ($user in (Get-ADUser -Identity $logonname -Properties mail, ProxyAddresses, UserPrincipalName)) {
+        $user.ProxyAddresses += ("SIP:" + $email)
+        Set-ADUser -instance $user
+    }
     }
 
     if ($Usertype -ieq 'room') { 
         Write-Host "Creating the O365 room mailbox and AD Account."
-        New-RemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server -Room
+        New-OPRemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server -Room
         Write-Host "Done..."
         Write-Host
         Write-Host
@@ -362,7 +390,7 @@ if ($Proceed -ieq 'y') {
 
     if ($Usertype -ieq 'shared') { 
         Write-Host "Creating the O365 Shared mailbox and AD Account."
-        New-RemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server -Shared
+        New-OPRemoteMailbox -Name $fullname -FirstName $firstname -LastName $lastname -DisplayName $fullname -SamAccountName $logonname -UserPrincipalName $logonname@$domain -PrimarySmtpAddress $email -Password $password -OnPremisesOrganizationalUnit $OU -DomainController $Server -Shared
         Write-Host "Done..."
         Write-Host
         Write-Host
@@ -375,36 +403,32 @@ if ($Proceed -ieq 'y') {
         Write-Host
         Write-Host
     }
-  
+    
+    
     if ($MemberOf) {
+        $CopyName = $CUser.Name 
+        $ProceedMemberOf = Read-host "Do you want to copy AD User Groups from $CopyName other user to $fullname ?"
+        if ($ProceedMemberOf -ieq 'y') {
+        
         Write-Host "Adding Membership Groups to the new user account."
-        Get-ADUser $logonname -Server $Server | Add-ADPrincipalGroupMembership -Server $Server -MemberOf $MemberOf
+        $MemberOf | Add-ADGroupMember -Members $logonname
+        #Get-ADUser $logonname -Server $Server | Add-ADPrincipalGroupMembership -Server $Server -MemberOf $MemberOf
         Write-Host "Done..."
         Write-Host
         Write-Host
     }
+    }
+
 }
 
 Start-SyncAD
-
-Start-Sleep -s 15
-Clear-Host
-Write-Host "Sleeping until sync completed 20 minutes remaining"
-Start-Sleep -s 600
-Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
-Write-Host "Sleeping until sync completed 10 minutes remaining"
-Start-Sleep -s 600
-Clear-Host
-
-Write-Host "Login into the cloud to see if the user exists!"
-
-
-#Get-PSSession | Remove-PSSession
-Import-Module MSOnline
 Connect-MsolService -Credential $Global:365Cred
-Connect-ExchangeOnline -UserPrincipalName $Global:365AdminUsername -ShowProgress $false
-#$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://outlook.office365.com/powershell-liveid -Credential $Global:365Cred -Authentication Basic -AllowRedirection
-##Import-PSSession $Session -AllowClobber
+Write-Host "Creating $logonname in the cloud...."
+Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
+Write-Host "Sleeping until sync completed 2 minutes remaining"
+Start-Sleep -s 120
+Clear-Host
+
 
 if ($Usertype -ieq 'normal') { 
 
@@ -412,32 +436,24 @@ if ($Usertype -ieq 'normal') {
 
     Set-MsolUser -UserPrincipalName $email -UsageLocation GB
     Set-MsolUserLicense -UserPrincipalName $email -AddLicenses "reseller-account:SPE_E3"
-    #$ServicePlans = "KAIZALA_O365_P3", "TEAMS1", "MICROSOFT_SEARCH", "MYANALYTICS_P2", "POWERAPPS_O365_P2", "FLOW_O365_P2", "YAMMER_ENTERPRISE", "SWAY", "Deskless", "WHITEBOARD_PLAN2", "BPOS_S_TODO_2", "FORMS_PLAN_E3", "STREAM_O365_E3"
-    #$AccountSkuId = "reseller-account:SPE_E3"
-    #$LO = New-MsolLicenseOptions -AccountSkuId $AccountSkuId -DisabledPlans $ServicePlans
-    #Set-MsolUserLicense -UserPrincipalName $email -LicenseOptions $LO -Verbose
-
-    #Add SIP for skype #ADDED 25/09/2019
-    foreach ($user in (Get-ADUser -Identity $logonname -Properties mail, ProxyAddresses, UserPrincipalName)) {
-        $user.ProxyAddresses += ("SIP:" + $email)
-        Set-ADUser -instance $user
-    }
-
-    #Setup OneDrive
-    #[System.Windows.MessageBox]::Show('Please sign in to the below using your Domain Admin account to provison the OneDrive')
-    Import-Module Microsoft.Online.SharePoint.PowerShell
-    Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com
-    Request-SPOPersonalSite -UserEmails $email -NoWait
 }
 
-#Disable OWA
-Set-CASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled $false -OWAEnabled $false
-Set-Mailbox -Identity $email -MessageCopyForSentAsEnabled $True
-Set-Mailbox -Identity $email -MessageCopyForSendOnBehalfEnabled $True
-#Set Perms for Calendars
-$cal = $email + ":\Calendar"
-Set-MailboxFolderPermission $cal -User Default -AccessRights Reviewer
-Write-host "All done, check the Portal to make sure the user is setup."
+Write-Host "Applying licenses 2 minutes remaining"
+Start-Sleep -s 120
+
+Connect-SPOService -Url https://ellisonssolicitors-admin.sharepoint.com -Credential $Global:365Cred
+Request-SPOPersonalSite -UserEmails $email -NoWait
+#Disable OWA+SendAs and Behalf defaults
+
+    Set-EOCASMailbox -Identity $email -ActiveSyncEnabled $false -OWAforDevicesEnabled $false -OWAEnabled $false
+    Set-EOMailbox -Identity $email -MessageCopyForSentAsEnabled $True
+    Set-EOMailbox -Identity $email -MessageCopyForSendOnBehalfEnabled $True
+    #Set Perms for Calendars
+    $cal = $email + ":\Calendar"
+    Set-EOMailboxFolderPermission $cal -User Default -AccessRights Reviewer
+
+Write-Host "Login into the cloud to see if the user exists and is licensed properly!"
+
 
 $Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
 if ($Completed -ieq 'y') {
