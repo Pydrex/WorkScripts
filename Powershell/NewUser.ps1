@@ -427,7 +427,6 @@ Write-Host "Creating $logonname in the cloud...."
 Invoke-Command -ComputerName ez-az-dc01 -ScriptBlock { Start-ADSyncSyncCycle -PolicyType Delta }
 Write-Host "Sleeping until sync completed 2 minutes remaining"
 Start-Sleep -s 120
-Clear-Host
 
 
 if ($Usertype -ieq 'normal') { 
@@ -452,8 +451,8 @@ Request-SPOPersonalSite -UserEmails $email -NoWait
     $cal = $email + ":\Calendar"
     Set-EOMailboxFolderPermission $cal -User Default -AccessRights Reviewer
 
-Write-Host "Login into the cloud to see if the user exists and is licensed properly!"
-
+Write-Host "Login into the cloud to see if the user exists and is licensed properly"
+Write-Host "Also check they have the correct job title and member groups"
 
 $Completed = Read-host "Type y to exit or n if you wish to run this script again (y/n)"
 if ($Completed -ieq 'y') {

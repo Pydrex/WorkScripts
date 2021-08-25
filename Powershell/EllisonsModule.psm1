@@ -3,7 +3,7 @@
 Write-Host "Loading Powershell Ellisons Module" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Version 4" -BackgroundColor Black -ForegroundColor Green
 Write-Host "Created and Maintained by Andrew Powell" -BackgroundColor Black -ForegroundColor Green
-Write-Host "Updated 25/08/2021 - 11:30" -BackgroundColor Black -ForegroundColor Green
+Write-Host "Updated 25/08/2021 - 14:30" -BackgroundColor Black -ForegroundColor Green
 
 #######################################################################
 #             Check AzureAD Module - Install If Missing               #
